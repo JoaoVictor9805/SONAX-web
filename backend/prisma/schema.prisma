@@ -6,189 +6,72 @@ datasource db {
   provider = "postgresql"
 }
 
-model analise_bant {
-  log                     String       @id @db.VarChar(255)
-  budget_classificacao    String?      @db.VarChar(50)
-  budget_evidencia        String?
-  authority_classificacao String?      @db.VarChar(50)
-  authority_evidencia     String?
-  need_classificacao      String?      @db.VarChar(50)
-  need_evidencia          String?
-  timeline_classificacao  String?      @db.VarChar(50)
-  timeline_evidencia      String?
-  avaliacao_ia            avaliacao_ia @relation(fields: [log], references: [log], onDelete: NoAction, onUpdate: NoAction)
-}
-
-/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
-model analise_perfil {
-  log                         String       @id @db.VarChar(255)
-  setor                       String?      @db.VarChar(50)
-  setor_origem                String       @db.VarChar(50)
-  regime_tributario           String?      @db.VarChar(50)
-  regime_origem               String       @db.VarChar(50)
-  faturamento_declarado_texto String?
-  faturamento_anual           Decimal?     @db.Decimal(15, 2)
-  faturamento_mensal          Decimal?     @db.Decimal(15, 2)
-  periodo_meses               Int?
-  faturamento_origem          String       @db.VarChar(50)
-  faturamento_regra           String       @db.VarChar(50)
-  detalhes_faturamento        String?
-  avaliacao_ia                avaliacao_ia @relation(fields: [log], references: [log], onDelete: Cascade, onUpdate: NoAction)
-}
-
-/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
-model analise_spin {
-  log                     String       @id @db.VarChar(255)
-  situacao                String?
-  situacao_investigada    String       @default("n") @db.VarChar(1)
-  problema                String?
-  problema_investigado    String       @default("n") @db.VarChar(1)
-  implicacao              String?
-  implicacao_investigada  String       @default("n") @db.VarChar(1)
-  necessidade_solucao     String?
-  necessidade_investigada String       @default("n") @db.VarChar(1)
-  evidencias              String?
-  lacunas                 String?
-  avaliacao_ia            avaliacao_ia @relation(fields: [log], references: [log], onDelete: NoAction, onUpdate: NoAction)
-}
-
-model avaliacao_criterio {
-  id_criterio            Int                    @id @default(autoincrement())
-  log                    String                 @db.VarChar(255)
-  criterio               String                 @db.VarChar(100)
-  nota_criterio          Int?
-  justificativa_criterio String?
-  codigo_criterio        String                 @db.VarChar(20)
-  dim_criterio_avaliacao dim_criterio_avaliacao @relation(fields: [codigo_criterio], references: [codigo], onDelete: NoAction, onUpdate: NoAction)
-  avaliacao_sdr          avaliacao_sdr          @relation(fields: [log], references: [log], onDelete: NoAction, onUpdate: NoAction)
-}
-
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
 model avaliacao_ia {
-  log                String            @id @db.VarChar(255)
-  data_avaliacao     DateTime          @db.Date
-  modelo_ia          String            @db.VarChar(50)
-  interlocutor       String?           @db.VarChar(100)
-  cargo              String?           @db.VarChar(100)
-  empresa_contatada  Int?
-  resultado          String?           @db.VarChar(255)
-  ligacao_relevante  String            @db.VarChar(1)
-  reuniao_confirmada String            @db.VarChar(1)
-  data_confirmada    String            @db.VarChar(1)
-  conversa_decisor   String            @default("n") @db.VarChar(1)
-  resultado_frase    String
-  analise_bant       analise_bant?
-  analise_perfil     analise_perfil?
-  analise_spin       analise_spin?
-  empresa            empresa?          @relation(fields: [empresa_contatada], references: [id_empresa], onDelete: NoAction, onUpdate: NoAction)
-  registro_chamadas  registro_chamadas @relation(fields: [log], references: [log], onDelete: NoAction, onUpdate: NoAction)
-  avaliacao_sdr      avaliacao_sdr?
-  crm                crm?
-  detalhes_interlocutor   interlocutor?
-}
+  log                   String            @id @db.VarChar(255)
+  data_avaliacao        DateTime          @db.Date
+  modelo_ia             String            @db.VarChar(50)
+  interlocutor_nome     String?           @db.VarChar(100)
+  cargo                 String?           @db.VarChar(100)
+  resultado             String?           @db.VarChar(255)
+  ligacao_relevante     String            @db.VarChar(1)
+  conversa_decisor      String            @default("n") @db.VarChar(1)
+  reuniao_confirmada    String            @db.VarChar(1)
+  resultado_frase       String
+  registro_chamadas     registro_chamadas @relation(fields: [log], references: [log], onDelete: NoAction, onUpdate: NoAction)
+  avaliacao_sdr         avaliacao_sdr?
+  detalhes_interlocutor interlocutor?
 
-model avaliacao_oportunidade_treinamento {
-  log                          String                       @db.VarChar(255)
-  codigo_oportunidade          String                       @db.VarChar(20)
-  dim_oportunidade_treinamento dim_oportunidade_treinamento @relation(fields: [codigo_oportunidade], references: [codigo], onDelete: NoAction, onUpdate: NoAction)
-  avaliacao_sdr                avaliacao_sdr                @relation(fields: [log], references: [log], onDelete: Cascade, onUpdate: NoAction)
-
-  @@id([log, codigo_oportunidade])
+  @@index([data_avaliacao], map: "idx_avaliacao_ia_data")
 }
 
 model avaliacao_sdr {
-  log                                String                               @id @db.VarChar(255)
-  nota_final                         Int?
-  feedback_geral                     String
-  acertos                            String?
-  melhorias                          String?
-  frase_alternativa                  String?                              @db.VarChar(500)
-  avaliacao_criterio                 avaliacao_criterio[]
-  avaliacao_oportunidade_treinamento avaliacao_oportunidade_treinamento[]
-  avaliacao_ia                       avaliacao_ia                         @relation(fields: [log], references: [log], onDelete: NoAction, onUpdate: NoAction)
-}
+  log                      String       @id @db.VarChar(255)
+  nota_final               Int?
+  feedback_geral           String
+  acertos                  String?
+  melhorias                String?
+  frase_alternativa        String?
+  nota_abertura            Int?
+  justificativa_abertura   String?
+  nota_spin                Int?
+  justificativa_spin       String?
+  nota_perfil              Int?
+  justificativa_perfil     String?
+  nota_bant                Int?
+  justificativa_bant       String?
+  nota_escuta              Int?
+  justificativa_escuta     String?
+  nota_prox_passo          Int?
+  justificativa_prox_passo String?
+  avaliacao_ia             avaliacao_ia @relation(fields: [log], references: [log], onDelete: Cascade, onUpdate: NoAction)
 
-model cache_rpa_google {
-  telefone      String    @id @db.VarChar(30)
-  texto_google  String
-  atualizado_em DateTime? @default(now()) @db.Timestamp(6)
-
-  @@index([atualizado_em], map: "idx_cache_rpa_google_atualizado")
+  @@index([nota_final], map: "idx_avaliacao_sdr_nota")
 }
 
 model chamadas {
-  protocolo             BigInt    @id
-  identificacao_cliente String?   @db.VarChar(30)
-  estado_ddd            String?   @db.VarChar(2)
-  numero                String?   @db.VarChar(50)
-  atendido              String?   @db.Char(1)
-  ramal                 String?   @db.VarChar(20)
-  duracao_segundos      Int?
-  fila_id               Int?
-  fila_descricao        String?
-  tabulacao_id          Int?
-  tabulacao_descricao   String?
-  agente_login          String?   @db.VarChar(40)
-  agente_nome           String?
-  campanha_id           Int?
-  campanha_descricao    String?
-  dt_inicio             DateTime? @db.Timestamp(6)
-  dt_fim                DateTime? @db.Timestamp(6)
-  status                String?   @db.VarChar(20)
-  hash_registro         String
-  last_sync             DateTime? @default(now()) @db.Timestamp(6)
+  protocolo           BigInt             @id
+  estado_ddd          String?            @db.VarChar(3)
+  numero              String?            @db.VarChar(20)
+  atendido            String?            @db.Char(1)
+  ramal               String?            @db.VarChar(20)
+  duracao_segundos    Int?
+  fila_id             Int?
+  fila_descricao      String?            @db.VarChar(150)
+  tabulacao_id        Int?
+  tabulacao_descricao String?            @db.VarChar(150)
+  agente_login        String?            @db.VarChar(50)
+  agente_nome         String?            @db.VarChar(100)
+  campanha_id         Int?
+  campanha_descricao  String?            @db.VarChar(150)
+  dt_inicio           DateTime?          @db.Timestamp(6)
+  dt_fim              DateTime?          @db.Timestamp(6)
+  status              String?            @db.VarChar(50)
+  hash_registro       String?            @db.VarChar(64)
+  last_sync           DateTime?          @db.Timestamp(6)
+  registros_chamadas  registro_chamadas?
 
-  registros_chamadas    registro_chamadas[]
-  @@index([agente_login], map: "idx_chamadas_agente")
-  @@index([dt_inicio], map: "idx_chamadas_dt_inicio")
-}
-
-/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
-model crm {
-  log          String       @id @db.VarChar(255)
-  acao         String?      @db.VarChar(100)
-  responsavel  String?      @db.VarChar(100)
-  prazo        String?      @db.VarChar(100)
-  prazo_data   DateTime?    @db.Timestamp(6)
-  dados_extras String?
-  resumo       String?
-  avaliacao_ia avaliacao_ia @relation(fields: [log], references: [log], onDelete: NoAction, onUpdate: NoAction)
-
-  @@index([prazo_data], map: "idx_crm_prazo_data")
-}
-
-model dim_criterio_avaliacao {
-  codigo             String               @id @db.VarChar(20)
-  descricao          String
-  avaliacao_criterio avaliacao_criterio[]
-}
-
-model dim_oportunidade_treinamento {
-  codigo                             String                               @id @db.VarChar(20)
-  fase_venda                         String?                              @db.VarChar(100)
-  descricao                          String
-  avaliacao_oportunidade_treinamento avaliacao_oportunidade_treinamento[]
-}
-
-model empresa {
-  id_empresa            Int                 @id @default(autoincrement())
-  nome                  String              @db.VarChar(100)
-  telefone              String?             @db.VarChar(20)
-  setor                 String?             @db.VarChar(100)
-  regime_tributario     String?             @db.VarChar(50)
-  faturamento_mensal    Decimal?            @db.Decimal(15, 2)
-  faturamento_anual     Decimal?            @db.Decimal(15, 2)
-  status_comercial      String?             @db.VarChar(100)
-  fonte_dados           String?
-  setor_origem          String?             @db.VarChar(50)
-  regime_origem         String?             @db.VarChar(50)
-  faturamento_origem    String?             @db.VarChar(50)
-  data_status_comercial DateTime?           @db.Timestamp(6)
-  avaliacao_ia          avaliacao_ia[]
-  registro_chamadas     registro_chamadas[]
-
-  @@index([telefone], map: "empresa_telefone")
-  @@index([data_status_comercial], map: "idx_empresa_data_status")
+  @@index([agente_nome, dt_inicio], map: "idx_chamadas_agente_data")
 }
 
 model interlocutor {
@@ -198,17 +81,58 @@ model interlocutor {
   objecoes            String?
   resposta_sdr        String?
   reacao_interlocutor String?
-  avaliacao_ia        avaliacao_ia @relation(fields: [log], references: [log], onDelete: NoAction, onUpdate: NoAction)
+  avaliacao_ia        avaliacao_ia @relation(fields: [log], references: [log], onDelete: Cascade, onUpdate: NoAction)
 }
 
 model registro_chamadas {
   log          String        @id @db.VarChar(255)
-  protocolo    BigInt?
+  protocolo    BigInt        @unique
   transcricao  String?
-  revisao      String?
-  id_empresa   Int?
   avaliacao_ia avaliacao_ia?
-  empresa      empresa?      @relation(fields: [id_empresa], references: [id_empresa], onDelete: NoAction, onUpdate: NoAction)
-  chamada_info chamadas?     @relation(fields: [protocolo], references: [protocolo], onDelete: NoAction, onUpdate: NoAction)
+  chamada_info chamadas      @relation(fields: [protocolo], references: [protocolo], onDelete: Cascade, onUpdate: NoAction, map: "fk_registro_chamada")
+}
 
+model agentes {
+  id_agente           Int                   @id @default(autoincrement())
+  agente_login        String                @unique @db.VarChar(50)
+  agente_nome         String                @db.VarChar(100)
+  id_departamento     Int?
+  ativo               Boolean?              @default(true)
+  criado_em           DateTime?             @default(now()) @db.Timestamp(6)
+  departamentos       departamentos?        @relation(fields: [id_departamento], references: [id_departamento], onUpdate: NoAction)
+  perfis_consolidados perfis_consolidados[]
+}
+
+model departamentos {
+  id_departamento     Int                   @id @default(autoincrement())
+  nome                String                @unique @db.VarChar(100)
+  ativo               Boolean?              @default(true)
+  criado_em           DateTime?             @default(now()) @db.Timestamp(6)
+  agentes             agentes[]
+  perfis_consolidados perfis_consolidados[]
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model perfis_consolidados {
+  id_perfil            Int            @id @default(autoincrement())
+  tipo_escopo          String         @db.VarChar(20)
+  granularidade        String         @db.VarChar(10)
+  ano                  Int
+  mes                  Int
+  semana_do_mes        Int?
+  data_inicio          DateTime       @db.Date
+  data_fim             DateTime       @db.Date
+  id_agente            Int?
+  id_departamento      Int?
+  metricas_camada_1    Json
+  metricas_camada_2    Json
+  diagnostico_camada_3 Json
+  evidencias_camada_4  Json
+  processado_em        DateTime?      @default(now()) @db.Timestamp(6)
+  parecer_executivo    String?
+  agentes              agentes?       @relation(fields: [id_agente], references: [id_agente], onDelete: Cascade, onUpdate: NoAction)
+  departamentos        departamentos? @relation(fields: [id_departamento], references: [id_departamento], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([tipo_escopo, granularidade, ano, mes, semana_do_mes, id_agente, id_departamento])
+  @@index([tipo_escopo, granularidade, data_inicio, id_agente, id_departamento], map: "idx_perfis_filtros")
 }

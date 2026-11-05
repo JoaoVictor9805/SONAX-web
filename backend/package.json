@@ -13,10 +13,14 @@
   "keywords": [],
   "dependencies": {
     "@fastify/cors": "^11.4.0",
+    "@langchain/core": "^1.3.4",
+    "@langchain/google-genai": "^2.3.4",
     "@prisma/adapter-pg": "^7.10.1",
     "@prisma/client": "^7.10.1",
     "fastify": "^5.12.8",
-    "pg": "^8.23.1"
+    "node-cron": "^4.6.0",
+    "pg": "^8.23.1",
+    "zod": "^4.6.7"
   },
   "devDependencies": {
     "@types/node": "^26.6.6",
