@@ -1,5 +1,9 @@
 import { prisma } from "../lib/prisma.js";
 import { createConsolidacaoChain } from "./langchain.service.js";
+import { extrairDadosSdr } from "./processamento.service.js";
+
+// Re-exporta para manter compatibilidade
+export { extrairDadosSdr };
 
 /**
  * Calcula a semana de trabalho anterior (Segunda a Sexta) com base em uma data de referência.
@@ -41,102 +45,7 @@ export function calcularSemanaAnterior(referencia = new Date()) {
     };
 }
 
-/**
- * Passo 1: Extração analítica direta do banco (KPIs, Gráfico Evolutivo e Lote de 30 chamadas)
- */
-export async function extrairDadosSdr(agenteLogin, dtInicio, dtFim) {
-    const sqlKpis = `
-        SELECT 
-            COUNT(*)::int AS total_realizadas,
-            COUNT(*) FILTER (WHERE c.atendido = 's')::int AS total_atendidas,
-            COUNT(*) FILTER (WHERE ai.ligacao_relevante = 's')::int AS total_relevantes,
-            COUNT(*) FILTER (WHERE ai.conversa_decisor = 's')::int AS total_decisor,
-            COUNT(*) FILTER (WHERE ai.reuniao_confirmada = 's')::int AS total_reunioes,
-            ROUND(AVG(sdr.nota_final), 1) AS media_nota_geral,
-            ROUND(AVG(sdr.nota_abertura), 1) AS media_abertura,
-            ROUND(AVG(sdr.nota_spin), 1) AS media_spin,
-            ROUND(AVG(sdr.nota_perfil), 1) AS media_perfil,
-            ROUND(AVG(sdr.nota_bant), 1) AS media_bant,
-            ROUND(AVG(sdr.nota_escuta), 1) AS media_escuta,
-            ROUND(AVG(sdr.nota_prox_passo), 1) AS media_prox_passo
-        FROM chamadas c
-        LEFT JOIN registro_chamadas rc ON rc.protocolo = c.protocolo
-        LEFT JOIN avaliacao_ia ai ON ai.log = rc.log
-        LEFT JOIN avaliacao_sdr sdr ON sdr.log = ai.log
-        WHERE c.dt_inicio >= $1::timestamp 
-          AND c.dt_inicio <= $2::timestamp 
-          AND c.agente_login = $3::text;
-    `;
 
-    const sqlEvolutivo = `
-        SELECT 
-            date_trunc('week', c.dt_inicio) AS semana_referencia,
-            ROUND(AVG(sdr.nota_final), 1) AS media_nota_geral
-        FROM chamadas c
-        LEFT JOIN registro_chamadas rc ON rc.protocolo = c.protocolo
-        LEFT JOIN avaliacao_ia ai ON ai.log = rc.log
-        LEFT JOIN avaliacao_sdr sdr ON sdr.log = ai.log
-        WHERE c.dt_inicio >= ($1::timestamp - INTERVAL '4 weeks')
-          AND c.dt_inicio <= $2::timestamp
-          AND c.agente_login = $3::text
-        GROUP BY date_trunc('week', c.dt_inicio)
-        ORDER BY semana_referencia ASC;
-    `;
-
-    const sqlAmostragem = `
-        WITH chamadas_base AS (
-            SELECT 
-                c.protocolo::text AS protocolo,
-                rc.log,
-                sdr.nota_final,
-                sdr.acertos, 
-                sdr.melhorias, 
-                sdr.feedback_geral, 
-                sdr.frase_alternativa,
-                sdr.nota_abertura, sdr.nota_spin, sdr.nota_perfil, sdr.nota_bant, sdr.nota_escuta, sdr.nota_prox_passo,
-                it.interesse_expresso,
-                it.objecoes, 
-                it.resposta_sdr, 
-                it.reacao_interlocutor,
-                ai.interlocutor_nome,
-                ai.cargo,
-                CASE 
-                    WHEN sdr.nota_final < 60 THEN 'BAIXA'
-                    WHEN sdr.nota_final > 90 THEN 'ALTA'
-                    ELSE 'MEDIA'
-                END AS faixa
-            FROM chamadas c
-            INNER JOIN registro_chamadas rc ON rc.protocolo = c.protocolo
-            INNER JOIN avaliacao_ia ai ON ai.log = rc.log
-            INNER JOIN avaliacao_sdr sdr ON sdr.log = ai.log
-            LEFT JOIN interlocutor it ON it.log = ai.log
-            WHERE c.dt_inicio >= $1::timestamp 
-              AND c.dt_inicio <= $2::timestamp 
-              AND c.agente_login = $3::text
-        ),
-        baixas AS (SELECT * FROM chamadas_base WHERE faixa = 'BAIXA' ORDER BY nota_final ASC LIMIT 10),
-        altas AS (SELECT * FROM chamadas_base WHERE faixa = 'ALTA' ORDER BY nota_final DESC LIMIT 10),
-        medias AS (SELECT * FROM chamadas_base WHERE faixa = 'MEDIA' ORDER BY RANDOM() LIMIT (30 - (SELECT COUNT(*) FROM baixas) - (SELECT COUNT(*) FROM altas)))
-        
-        SELECT * FROM baixas 
-        UNION ALL 
-        SELECT * FROM altas 
-        UNION ALL 
-        SELECT * FROM medias;
-    `;
-
-    const [kpisAtuais, historicoEvolutivo, amostragemIA] = await Promise.all([
-        prisma.$queryRawUnsafe(sqlKpis, dtInicio, dtFim, agenteLogin),
-        prisma.$queryRawUnsafe(sqlEvolutivo, dtInicio, dtFim, agenteLogin),
-        prisma.$queryRawUnsafe(sqlAmostragem, dtInicio, dtFim, agenteLogin),
-    ]);
-
-    return {
-        kpis: kpisAtuais[0] || {},
-        historico: historicoEvolutivo || [],
-        amostragem: amostragemIA || [],
-    };
-}
 
 /**
  * Passo 3: Busca de transcrições das chamadas selecionadas pela IA (Top 3 Melhores e Bottom 3 Piores)
@@ -194,7 +103,7 @@ export function montarCamadas({ kpis, historico, amostragem, respostaIA, registr
 
     const rankingAdaptativo = historico.map((h, idx) => ({
         periodo: idx === historico.length - 1 ? "Semana Atual" : `Semana ${idx + 1}`,
-        reunioes: reunioes,
+        reunioes: h.reunioes !== undefined && h.reunioes !== null ? Number(h.reunioes) : reunioes,
         nota_media: Number(h.media_nota_geral || 0),
     }));
 
@@ -218,20 +127,72 @@ export function montarCamadas({ kpis, historico, amostragem, respostaIA, registr
 
     // 2. Camada 2: Radar de Competências e Notas
     const notaMediaGeral = Number(kpis.media_nota_geral || 0);
-    const penultimaSemana = historico.length >= 2 ? Number(historico[historico.length - 2]?.media_nota_geral || 0) : null;
-    const deltaPeriodoAnterior = penultimaSemana !== null ? Math.round(notaMediaGeral - penultimaSemana) : 0;
+
+    // Identifica a última semana anterior mais recente
+    const penultimaSemanaObj = historico.length >= 2 ? historico[historico.length - 2] : null;
+    const notaMediaAnterior = penultimaSemanaObj ? Number(penultimaSemanaObj.media_nota_geral || 0) : null;
+    const deltaPeriodoAnterior = notaMediaAnterior !== null ? Math.round(notaMediaGeral - notaMediaAnterior) : 0;
+
+    const criteriosRadar = [
+        {
+            criterio: "Abertura",
+            nota: Number(kpis.media_abertura || 0),
+            nota_anterior: penultimaSemanaObj ? Number(penultimaSemanaObj.media_abertura || 0) : null,
+            delta: penultimaSemanaObj ? Math.round(Number(kpis.media_abertura || 0) - Number(penultimaSemanaObj.media_abertura || 0)) : 0,
+        },
+        {
+            criterio: "SPIN",
+            nota: Number(kpis.media_spin || 0),
+            nota_anterior: penultimaSemanaObj ? Number(penultimaSemanaObj.media_spin || 0) : null,
+            delta: penultimaSemanaObj ? Math.round(Number(kpis.media_spin || 0) - Number(penultimaSemanaObj.media_spin || 0)) : 0,
+        },
+        {
+            criterio: "Perfil ICP",
+            nota: Number(kpis.media_perfil || 0),
+            nota_anterior: penultimaSemanaObj ? Number(penultimaSemanaObj.media_perfil || 0) : null,
+            delta: penultimaSemanaObj ? Math.round(Number(kpis.media_perfil || 0) - Number(penultimaSemanaObj.media_perfil || 0)) : 0,
+        },
+        {
+            criterio: "BANT",
+            nota: Number(kpis.media_bant || 0),
+            nota_anterior: penultimaSemanaObj ? Number(penultimaSemanaObj.media_bant || 0) : null,
+            delta: penultimaSemanaObj ? Math.round(Number(kpis.media_bant || 0) - Number(penultimaSemanaObj.media_bant || 0)) : 0,
+        },
+        {
+            criterio: "Escuta Ativa",
+            nota: Number(kpis.media_escuta || 0),
+            nota_anterior: penultimaSemanaObj ? Number(penultimaSemanaObj.media_escuta || 0) : null,
+            delta: penultimaSemanaObj ? Math.round(Number(kpis.media_escuta || 0) - Number(penultimaSemanaObj.media_escuta || 0)) : 0,
+        },
+        {
+            criterio: "Próximo Passo",
+            nota: Number(kpis.media_prox_passo || 0),
+            nota_anterior: penultimaSemanaObj ? Number(penultimaSemanaObj.media_prox_passo || 0) : null,
+            delta: penultimaSemanaObj ? Math.round(Number(kpis.media_prox_passo || 0) - Number(penultimaSemanaObj.media_prox_passo || 0)) : 0,
+        },
+    ];
+
+    const comparativoSemanaAnterior = penultimaSemanaObj ? {
+        semana_referencia: penultimaSemanaObj.semana_referencia,
+        nota_media_geral: Number(penultimaSemanaObj.media_nota_geral || 0),
+        notas_criterios: {
+            abertura: Number(penultimaSemanaObj.media_abertura || 0),
+            spin: Number(penultimaSemanaObj.media_spin || 0),
+            perfil: Number(penultimaSemanaObj.media_perfil || 0),
+            bant: Number(penultimaSemanaObj.media_bant || 0),
+            escuta: Number(penultimaSemanaObj.media_escuta || 0),
+            prox_passo: Number(penultimaSemanaObj.media_prox_passo || 0),
+        },
+        reunioes: Number(penultimaSemanaObj.reunioes || 0),
+        total_realizadas: Number(penultimaSemanaObj.total_realizadas || 0),
+        total_atendidas: Number(penultimaSemanaObj.total_atendidas || 0),
+    } : null;
 
     const metricas_camada_2 = {
         nota_media_geral: notaMediaGeral,
         delta_periodo_anterior: deltaPeriodoAnterior,
-        criterios_radar: [
-            { criterio: "Abertura", nota: Number(kpis.media_abertura || 0) },
-            { criterio: "SPIN", nota: Number(kpis.media_spin || 0) },
-            { criterio: "Perfil ICP", nota: Number(kpis.media_perfil || 0) },
-            { criterio: "BANT", nota: Number(kpis.media_bant || 0) },
-            { criterio: "Escuta Ativa", nota: Number(kpis.media_escuta || 0) },
-            { criterio: "Próximo Passo", nota: Number(kpis.media_prox_passo || 0) },
-        ],
+        comparativo_semana_anterior: comparativoSemanaAnterior,
+        criterios_radar: criteriosRadar,
         metodologias: {
             spin_aderencia: Number(kpis.media_spin || 0),
             bant_aderencia: Number(kpis.media_bant || 0),
@@ -240,7 +201,7 @@ export function montarCamadas({ kpis, historico, amostragem, respostaIA, registr
 
     // 3. Camada 3: Diagnóstico Comportamental da IA
     const diagnostico_camada_3 = respostaIA.diagnostico_camada_3;
-    const parecer_executivo = respostaIA.diagnostico_camada_3?.parecer_executivo || "";
+    const parecer_executivo = respostaIA.parecer_executivo || respostaIA.diagnostico_camada_3?.parecer_executivo || "";
 
     // 4. Camada 4: Evidências e Transcrições (Top 3 Melhores e Bottom 3 Piores)
     const mapaTranscritas = new Map();
@@ -254,19 +215,33 @@ export function montarCamadas({ kpis, historico, amostragem, respostaIA, registr
     }
 
     const formatarEvidencia = (protoStr, isMelhor) => {
-        const amostra = mapaAmostras.get(protoStr) || {};
-        const transcricao = mapaTranscritas.get(protoStr) || "Transcrição não disponível.";
-        const interlocutorLabel = amostra.interlocutor_nome
-            ? `${amostra.interlocutor_nome}${amostra.cargo ? ` (${amostra.cargo})` : ""}`
-            : "Lead";
+        const protoKey = protoStr?.toString();
+        const amostra = mapaAmostras.get(protoKey) || {};
+        const transcricao = mapaTranscritas.get(protoKey) || "Transcrição não disponível.";
+        const interlocutorLabel = amostra.numero ? `Lead (${amostra.numero})` : "Lead";
 
         const base = {
             protocolo: Number(protoStr) || protoStr,
             log: amostra.log || "",
+            numero: amostra.numero || "",
             nota: Number(amostra.nota_final || 0),
             audio_url: `/audios/${protoStr}.mp3`,
             interlocutor: interlocutorLabel,
             transcricao,
+            feedback_geral: amostra.feedback_geral || "",
+            resultado_frase: amostra.resultado_frase || "",
+            acertos: amostra.acertos || null,
+            melhorias: amostra.melhorias || null,
+            frase_original: amostra.frase_original || null,
+            frase_alternativa: amostra.frase_alternativa || null,
+            notas_criterios: {
+                abertura: Number(amostra.nota_abertura || 0),
+                spin: Number(amostra.nota_spin || 0),
+                perfil: Number(amostra.nota_perfil || 0),
+                bant: Number(amostra.nota_bant || 0),
+                escuta: Number(amostra.nota_escuta || 0),
+                prox_passo: Number(amostra.nota_prox_passo || 0),
+            },
             justificativa_criterios: {
                 abertura: Number(amostra.nota_abertura || 0),
                 spin: Number(amostra.nota_spin || 0),
@@ -274,6 +249,27 @@ export function montarCamadas({ kpis, historico, amostragem, respostaIA, registr
                 bant: Number(amostra.nota_bant || 0),
                 escuta: Number(amostra.nota_escuta || 0),
                 prox_passo: Number(amostra.nota_prox_passo || 0),
+            },
+            justificativas_textuais: {
+                abertura: amostra.justificativa_abertura || null,
+                spin: amostra.justificativa_spin || null,
+                perfil: amostra.justificativa_perfil || null,
+                bant: amostra.justificativa_bant || null,
+                escuta: amostra.justificativa_escuta || null,
+                prox_passo: amostra.justificativa_prox_passo || null,
+            },
+            criterios_qualitativos: {
+                validacao_dor: amostra.validacao_dor || null,
+                contato_inicial: amostra.contato_inicial || null,
+                isolamento_objecao: amostra.isolamento_objecao || null,
+                qualidade_investigacao: amostra.qualidade_investigacao || null,
+            },
+            detalhes_interlocutor: {
+                interesse_expresso: amostra.interesse_expresso || null,
+                duvidas: amostra.duvidas || null,
+                objecoes: amostra.objecoes || null,
+                resposta_sdr: amostra.resposta_sdr || null,
+                reacao_interlocutor: amostra.reacao_interlocutor || null,
             },
         };
 
@@ -286,7 +282,6 @@ export function montarCamadas({ kpis, historico, amostragem, respostaIA, registr
             return {
                 ...base,
                 falha_critica: amostra.melhorias || "Dificuldade no contorno de objeções",
-                frase_alternativa: amostra.frase_alternativa || null,
             };
         }
     };
@@ -310,15 +305,41 @@ export function montarCamadas({ kpis, historico, amostragem, respostaIA, registr
 
 /**
  * Executa os 4 passos para um agente específico e realiza o Upsert idempotente no banco.
+ * Aceita opcionalmente 'dadosProcessamento' pré-coletados pela rota de processamento,
+ * eliminando a redundância de consultar o banco novamente.
  */
-export async function consolidarPerfilAgente({ agente, dataInicio, dataFim, ano, mes, semanaDoMes, chain }) {
+export async function consolidarPerfilAgente({
+    agente,
+    dataInicio,
+    dataFim,
+    ano,
+    mes,
+    semanaDoMes,
+    chain,
+    dadosProcessamento = null,
+}) {
     console.log(`[Consolidação] Processando SDR ${agente.agente_nome} (${agente.agente_login})...`);
 
     const dtInicio = `${dataInicio.split("T")[0]} 00:00:00`;
     const dtFim = `${dataFim.split("T")[0]} 23:59:59.999`;
 
-    // Passo 1: Extração SQL
-    const { kpis, historico, amostragem } = await extrairDadosSdr(agente.agente_login, dtInicio, dtFim);
+    let kpis;
+    let historico;
+    let amostragem;
+
+    // Se os dados já foram fornecidos (ex.: vindos da rota de processamento), não refaz as 3 queries
+    if (dadosProcessamento) {
+        console.log(`[Consolidação] Utilizando dados pré-coletados pela rota de processamento para ${agente.agente_login} (sem nova consulta analítica ao banco).`);
+        kpis = dadosProcessamento.kpis_conversao_notas || dadosProcessamento.kpis || {};
+        historico = dadosProcessamento.grafico_evolutivo || dadosProcessamento.historico || [];
+        amostragem = dadosProcessamento.lote_ia_30_chamadas || dadosProcessamento.amostragem || [];
+    } else {
+        // Passo 1: Extração SQL direta do banco de dados
+        const dadosExtraidos = await extrairDadosSdr(agente.agente_login, dtInicio, dtFim);
+        kpis = dadosExtraidos.kpis;
+        historico = dadosExtraidos.historico;
+        amostragem = dadosExtraidos.amostragem;
+    }
 
     if (!amostragem || amostragem.length === 0) {
         console.warn(`[Consolidação] Sem chamadas avaliadas para ${agente.agente_login} no período.`);
@@ -331,6 +352,7 @@ export async function consolidarPerfilAgente({ agente, dataInicio, dataFim, ano,
         agente_login: agente.agente_login,
         data_inicio: dataInicio.split("T")[0],
         data_fim: dataFim.split("T")[0],
+        historico_evolutivo: JSON.stringify(historico, null, 2),
         kpis_resumo: JSON.stringify(kpis, null, 2),
         lote_amostragem: JSON.stringify(amostragem, null, 2),
     };
@@ -405,7 +427,13 @@ export async function consolidarPerfilAgente({ agente, dataInicio, dataFim, ano,
 /**
  * Orquestrador da Consolidação Semanal Individual por SDR
  */
-export async function executarConsolidacaoSemanal({ dataInicio, dataFim, idAgente, agenteLogin } = {}) {
+export async function executarConsolidacaoSemanal({
+    dataInicio,
+    dataFim,
+    idAgente,
+    agenteLogin,
+    dadosProcessamento = null,
+} = {}) {
     if (!idAgente && !agenteLogin) {
         throw new Error("A consolidação geral em lote está bloqueada. Informe 'idAgente' ou 'agenteLogin' para processar individualmente.");
     }
@@ -462,6 +490,7 @@ export async function executarConsolidacaoSemanal({ dataInicio, dataFim, idAgent
                 mes,
                 semanaDoMes,
                 chain,
+                dadosProcessamento,
             });
             resultados.push(res);
         } catch (erro) {

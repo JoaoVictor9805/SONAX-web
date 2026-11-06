@@ -5,24 +5,28 @@ import { executarConsolidacaoSemanal } from "../services/consolidacao.service.js
  * Disparo manual / sob demanda da consolidação semanal de perfis de SDRs
  * POST /api/consolidacao/executar
  * Body obrigatório: { id_agente: 11 } (ou agente_login: "sdr_lucas")
- * Body opcional: { data_inicio: "YYYY-MM-DD", data_fim: "YYYY-MM-DD" }
+ * Body opcional: { data_inicio: "YYYY-MM-DD", data_fim: "YYYY-MM-DD", dados_processamento: { ... } }
  */
 export async function dispararConsolidacaoManual(request, reply) {
     try {
-        const { data_inicio, data_fim, id_agente, agente_login } = request.body || {};
+        const { data_inicio, data_fim, id_agente, agente_login, dados_processamento } = request.body || {};
+
+        const idAgenteFinal = id_agente || dados_processamento?.id_agente;
+        const agenteLoginFinal = agente_login || dados_processamento?.agente_login;
 
         // Bloqueio do disparo geral: exige identificar expressamente o SDR
-        if (!id_agente && !agente_login) {
+        if (!idAgenteFinal && !agenteLoginFinal) {
             return reply.status(400).send({
                 erro: "A consolidação em lote geral está bloqueada. O parâmetro 'id_agente' (ou 'agente_login') é obrigatório para processar o fechamento individual do SDR."
             });
         }
 
         const resultado = await executarConsolidacaoSemanal({
-            dataInicio: data_inicio,
-            dataFim: data_fim,
-            idAgente: id_agente,
-            agenteLogin: agente_login,
+            dataInicio: data_inicio || dados_processamento?.data_inicio,
+            dataFim: data_fim || dados_processamento?.data_fim,
+            idAgente: idAgenteFinal,
+            agenteLogin: agenteLoginFinal,
+            dadosProcessamento: dados_processamento,
         });
 
         return reply.status(200).send({

@@ -11,9 +11,6 @@ model avaliacao_ia {
   log                   String            @id @db.VarChar(255)
   data_avaliacao        DateTime          @db.Date
   modelo_ia             String            @db.VarChar(50)
-  interlocutor_nome     String?           @db.VarChar(100)
-  cargo                 String?           @db.VarChar(100)
-  resultado             String?           @db.VarChar(255)
   ligacao_relevante     String            @db.VarChar(1)
   conversa_decisor      String            @default("n") @db.VarChar(1)
   reuniao_confirmada    String            @db.VarChar(1)
@@ -29,9 +26,13 @@ model avaliacao_sdr {
   log                      String       @id @db.VarChar(255)
   nota_final               Int?
   feedback_geral           String
+  frase_alternativa        String?
+  validacao_dor            String?
+  contato_inicial          String?
+  isolamento_objecao       String?
+  qualidade_investigacao   String?
   acertos                  String?
   melhorias                String?
-  frase_alternativa        String?
   nota_abertura            Int?
   justificativa_abertura   String?
   nota_spin                Int?
@@ -44,6 +45,7 @@ model avaliacao_sdr {
   justificativa_escuta     String?
   nota_prox_passo          Int?
   justificativa_prox_passo String?
+  frase_original           String?
   avaliacao_ia             avaliacao_ia @relation(fields: [log], references: [log], onDelete: Cascade, onUpdate: NoAction)
 
   @@index([nota_final], map: "idx_avaliacao_sdr_nota")

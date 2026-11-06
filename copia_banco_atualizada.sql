@@ -3,6 +3,7 @@
 -- Remoção de tabelas de CRM, Perfil de Empresa e Metodologias Engessadas.
 -- ==============================================================================
 
+
 -- 1. TABELAS INDEPENDENTES E DIMENSÕES
 
 CREATE TABLE IF NOT EXISTS chamadas (
@@ -40,9 +41,6 @@ CREATE TABLE IF NOT EXISTS avaliacao_ia (
     log VARCHAR(255) PRIMARY KEY NOT NULL,
     data_avaliacao DATE NOT NULL,
     modelo_ia VARCHAR(50) NOT NULL,
-    interlocutor_nome VARCHAR(100),
-    cargo VARCHAR(100),
-    resultado VARCHAR(255),
     
     -- KPIs de Funil
     ligacao_relevante VARCHAR(1) NOT NULL CHECK (ligacao_relevante IN ('s','n')),
@@ -58,11 +56,19 @@ CREATE TABLE IF NOT EXISTS avaliacao_ia (
 
 CREATE TABLE IF NOT EXISTS avaliacao_sdr (
     log VARCHAR(255) PRIMARY KEY NOT NULL,
+    
     nota_final INT,
+    
     feedback_geral TEXT NOT NULL,
+    
+    frase_original TEXT,
+    frase_alternativa TEXT,
+    validacao_dor TEXT,
+    contato_inicial TEXT,
+    isolamento_objecao TEXT,
+    qualidade_investigacao TEXT,
     acertos TEXT,
     melhorias TEXT, 
-    frase_alternativa TEXT,
     
     -- Critérios de Avaliação (Nota e Justificativa embutidos na mesma linha)
     nota_abertura INT,
@@ -82,6 +88,9 @@ CREATE TABLE IF NOT EXISTS avaliacao_sdr (
     
     nota_prox_passo INT,
     justificativa_prox_passo TEXT,
+    
+    
+    
    
     FOREIGN KEY (log) REFERENCES avaliacao_ia(log) ON DELETE CASCADE
 );

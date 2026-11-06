@@ -1,0 +1,474 @@
+{
+    "id_perfil": 104,
+    "tipo_escopo": "AGENTE",
+    "granularidade": "SEMANAL",
+    "ano": 2026,
+    "mes": 11,
+    "semana_do_mes": 1,
+    "data_inicio": "2026-11-02T00:00:00.000Z",
+    "data_fim": "2026-11-06T23:59:59.999Z",
+    "id_agente": 11,
+    "id_departamento": 3,
+    "processado_em": "2026-11-06T18:30:15.420Z",
+    "parecer_executivo": "### Parecer Executivo de Desempenho (Sales Enablement)\n\nO SDR **Lucas Silveira** apresentou uma curva de evolução consistente ao longo das últimas 4 semanas, saindo de uma média geral de **61.0** para **74.5** na semana atual, acompanhado de um aumento expressivo na conversão de reuniões (de 2 para 5 agendamentos confirmados).\n\n**Pontos Fortes Observados:**\n- Demonstrou forte habilidade de conexão empática no *contato inicial*, reduzindo drasticamente os desligamentos nos primeiros 15 segundos.\n- Excelente evolução na *escuta ativa* (nota 80.0), aguardando o lead concluir seus desafios operacionais antes de apresentar a proposta de valor.\n\n**Gargalo Prioritário e Plano de Treinamento:**\n- O maior ponto de atrito continua sendo o *isolamento de objeções* de envio de material por e-mail (`OP_OBJ_ENVIO_EMAIL`). Em aproximadamente 45% das ligações descartadas sem reunião, o SDR aceitou passivamente a objeção *\"Me manda por e-mail que eu dou uma olhada\"* sem validar se a falta de tempo era o único impeditivo ou se havia real interesse na resolução do problema.",
+    "metricas_camada_1": {
+        "fluxo_bruto": {
+            "realizadas": 62,
+            "atendidas": 44,
+            "relevantes": 26,
+            "decisor": 16,
+            "reunioes": 5
+        },
+        "funil_passagem": {
+            "atendimento": 71,
+            "relevancia": 59,
+            "decisor": 62,
+            "conversao_final": 31,
+            "gargalo_etapa": "relevancia"
+        },
+        "ranking_adaptativo": [
+            {
+                "periodo": "Semana 1",
+                "reunioes": 2,
+                "nota_media": 61.2
+            },
+            {
+                "periodo": "Semana 2",
+                "reunioes": 3,
+                "nota_media": 64.0
+            },
+            {
+                "periodo": "Semana 3",
+                "reunioes": 3,
+                "nota_media": 68.5
+            },
+            {
+                "periodo": "Semana Atual",
+                "reunioes": 5,
+                "nota_media": 74.5
+            }
+        ]
+    },
+    "metricas_camada_2": {
+        "nota_media_geral": 74.5,
+        "delta_periodo_anterior": 6.0,
+        "comparativo_semana_anterior": {
+            "semana_referencia": "2026-10-26T00:00:00.000Z",
+            "nota_media_geral": 68.5,
+            "notas_criterios": {
+                "abertura": 70.0,
+                "spin": 62.0,
+                "perfil": 66.0,
+                "bant": 63.0,
+                "escuta": 74.0,
+                "prox_passo": 68.0
+            },
+            "reunioes": 3,
+            "total_realizadas": 58,
+            "total_atendidas": 39
+        },
+        "criterios_radar": [
+            {
+                "criterio": "Abertura",
+                "nota": 78.0,
+                "nota_anterior": 70.0,
+                "delta": 8
+            },
+            {
+                "criterio": "SPIN",
+                "nota": 69.0,
+                "nota_anterior": 62.0,
+                "delta": 7
+            },
+            {
+                "criterio": "Perfil ICP",
+                "nota": 74.0,
+                "nota_anterior": 66.0,
+                "delta": 8
+            },
+            {
+                "criterio": "BANT",
+                "nota": 67.0,
+                "nota_anterior": 63.0,
+                "delta": 4
+            },
+            {
+                "criterio": "Escuta Ativa",
+                "nota": 80.0,
+                "nota_anterior": 74.0,
+                "delta": 6
+            },
+            {
+                "criterio": "Próximo Passo",
+                "nota": 75.0,
+                "nota_anterior": 68.0,
+                "delta": 7
+            }
+        ],
+        "metodologias": {
+            "spin_aderencia": 69.0,
+            "bant_aderencia": 67.0
+        }
+    },
+    "diagnostico_camada_3": {
+        "sintese_executiva": {
+            "destaque": "Assertividade ao propor horários com dupla alternativa no fechamento da reunião e tom consultivo nos primeiros 30 segundos.",
+            "gargalo_principal": "Aceitação passiva e imediata de pedidos de envio de material por e-mail antes de qualificar a dor.",
+            "foco_da_semana": "Treinar técnicas de isolamento de objeções ('Entendo perfeitamente, Fulano. Mas se desconsiderarmos o envio do e-mail por um instante, esse problema de custos hoje é prioridade para você?')."
+        },
+        "sintese_qualitativa": {
+            "validacao_dor": "O SDR identifica bem problemas superficiais relatados pelo lead, mas ainda tem espaço para aprofundar as consequências financeiras e operacionais da inação.",
+            "contato_inicial": "Excelente tom de voz, clareza no motivo do contato e respeito ao tempo do interlocutor, gerando rapport imediato.",
+            "isolamento_objecao": "Apresenta hesitação quando o tomador levanta falta de tempo ou solicita material prévio, optando pelo caminho de menor resistência.",
+            "qualidade_investigacao": "Evolução nítida no uso de perguntas abertas, conseguindo extrair o cenário de software atual e o volume de ligações da empresa."
+        },
+        "oportunidades_unificadas": [
+            {
+                "codigo": "OP_OBJ_ENVIO_EMAIL",
+                "prioridade": "ALTA",
+                "percentual_aparicao": 45.0,
+                "diagnostico_consolidado": "Em quase metade dos descartes de leads com fit, o SDR concorda imediatamente em mandar material por e-mail sem antes alinhar qual ponto específico o tomador gostaria de avaliar."
+            },
+            {
+                "codigo": "OP_APROFUNDAMENTO_IMPLICACAO",
+                "prioridade": "MEDIA",
+                "percentual_aparicao": 30.0,
+                "diagnostico_consolidado": "Ao ouvir uma queixa sobre instabilidade do sistema atual, o SDR passa rápido para a solução em vez de explorar o impacto disso nas perdas de vendas diárias."
+            }
+        ],
+        "perfil_objecoes": [
+            {
+                "objecao_padrao": "Me manda por e-mail para eu analisar",
+                "frequencia_percentual": 48.0,
+                "reacao_predominante_sdr": "Concorda de imediato, pede confirmação do e-mail e desliga a chamada.",
+                "efetividade": "BAIXA",
+                "recomendacao_curta": "Validar qual informação específica é prioritária antes de enviar, propondo alinhar em 10 minutos de reunião."
+            },
+            {
+                "objecao_padrao": "Já temos uma solução contratada",
+                "frequencia_percentual": 32.0,
+                "reacao_predominante_sdr": "Questiona há quanto tempo estão com ela e se há planos de revisão contratual.",
+                "efetividade": "MEDIA",
+                "recomendacao_curta": "Investigar o nível de satisfação com o suporte do fornecedor atual para identificar potenciais insatisfações."
+            }
+        ]
+    },
+    "evidencias_camada_4": {
+        "top_3_melhores": [
+            {
+                "protocolo": 202611040012,
+                "log": "LOG_20261104_0012",
+                "numero": "11987654321",
+                "nota": 94,
+                "audio_url": "/audios/202611040012.mp3",
+                "interlocutor": "Lead (11987654321)",
+                "transcricao": "SDR: Olá Renato, bom dia! Aqui é o Lucas da SONAX. Vi que você é o responsável pela operação de vendas da Distribuidora Alfa. Peguei você no meio de uma reunião ou temos 1 minuto?... Interlocutor: Bom dia Lucas. Estou indo para um alinhamento agora, mas fala rápido... SDR: Perfeito, vou direto ao ponto. Notamos que muitas empresas do seu setor estão com problemas de queda de ligação e falta de gravação integrada no CRM. Esse tem sido um desafio no seu time?... Interlocutor: Rapaz, exatamente isso. Minha telefonia vive caindo e a equipe reclama todo dia... SDR: Imagino a dor de cabeça. Que tal na quinta às 14h ou sexta às 10h para eu te mostrar em 15 minutos como a Alfa pode blindar isso?... Interlocutor: Quinta às 14h é ótimo. Manda o convite no meu e-mail.",
+                "feedback_geral": "Ligação exemplar. Conexão direta, respeito ao tempo do decisor, identificação precisa do problema central e fechamento com alternativa dupla sem titubear.",
+                "resultado_frase": "Reunião de demonstração confirmada para quinta-feira às 14h com o Diretor Comercial.",
+                "acertos": "Excelente postura inicial, identificação imediata da dor de telefonia e fechamento assertivo.",
+                "melhorias": "Poderia ter confirmado o número de ramais antes de desligar, mas a condução foi cirúrgica.",
+                "frase_alternativa": null,
+                "ponto_forte": "Abertura objetiva e fechamento de horário seguro com técnica de dupla alternativa.",
+                "notas_criterios": {
+                    "abertura": 98,
+                    "spin": 92,
+                    "perfil": 95,
+                    "bant": 90,
+                    "escuta": 95,
+                    "prox_passo": 96
+                },
+                "justificativa_criterios": {
+                    "abertura": 98,
+                    "spin": 92,
+                    "perfil": 95,
+                    "bant": 90,
+                    "escuta": 95,
+                    "prox_passo": 96
+                },
+                "justificativas_textuais": {
+                    "abertura": "Ganhou a permissão para falar em menos de 10 segundos respeitando a rotina do lead.",
+                    "spin": "Tocou no ponto exato de dor operacional (queda de ligação e gravação).",
+                    "perfil": "Decisor correto e empresa com mais de 30 colaboradores.",
+                    "bant": "Identificou necessidade urgente de substituição do sistema.",
+                    "escuta": "Não interrompeu o desabafo do lead sobre a instabilidade da ferramenta atual.",
+                    "prox_passo": "Fixou dia, horário e envio imediato de invite no calendário."
+                },
+                "criterios_qualitativos": {
+                    "validacao_dor": "Conectou a queda das ligações com o prejuízo na receita do cliente com perfeição.",
+                    "contato_inicial": "Voz firme, educada, segura e profissional.",
+                    "isolamento_objecao": "Não houve objeções impeditivas; conduziu a urgência com maestria.",
+                    "qualidade_investigacao": "Pergunta situacional precisa direcionada à dor recorrente do segmento."
+                },
+                "detalhes_interlocutor": {
+                    "interesse_expresso": "Resolver quedas frequentes de ligações e integrar gravações com CRM",
+                    "duvidas": "Se a migração de ramais é rápida sem parar a operação",
+                    "objecoes": "Pouco tempo na hora da chamada",
+                    "resposta_sdr": "Respeitou o minuto solicitado e foi direto ao ponto",
+                    "reacao_interlocutor": "Muito receptivo e confirmou reunião de 15 minutos"
+                }
+            },
+            {
+                "protocolo": 202611050033,
+                "log": "LOG_20261105_0033",
+                "numero": "31998877665",
+                "nota": 91,
+                "audio_url": "/audios/202611050033.mp3",
+                "interlocutor": "Lead (31998877665)",
+                "transcricao": "SDR: Juliana, bom dia! Aqui é o Lucas da SONAX... [Transcrição completa da ligação 2]",
+                "feedback_geral": "Ótima exploração de critérios de qualificação e excelente rapport.",
+                "resultado_frase": "Reunião de diagnóstico marcada para sexta-feira às 11h.",
+                "acertos": "Rapport natural e bom isolamento da objeção de fornecedor atual.",
+                "melhorias": "Aprofundar um pouco mais no orçamento previsto.",
+                "frase_alternativa": null,
+                "ponto_forte": "Conseguiu contornar a objeção de contrato vigente mostrando ROI comparativo.",
+                "notas_criterios": {
+                    "abertura": 92,
+                    "spin": 90,
+                    "perfil": 92,
+                    "bant": 88,
+                    "escuta": 94,
+                    "prox_passo": 92
+                },
+                "justificativa_criterios": {
+                    "abertura": 92,
+                    "spin": 90,
+                    "perfil": 92,
+                    "bant": 88,
+                    "escuta": 94,
+                    "prox_passo": 92
+                },
+                "justificativas_textuais": {
+                    "abertura": "Apresentação clara e articulada.",
+                    "spin": "Perguntas de implicação bem construídas.",
+                    "perfil": "Validou autoridade e fit de segmento.",
+                    "bant": "Mapeou momento de compra propício.",
+                    "escuta": "Espaço de fala bem dosado.",
+                    "prox_passo": "Confirmação de convite por e-mail."
+                },
+                "criterios_qualitativos": {
+                    "validacao_dor": "Validou insatisfação com suporte lento da atual operadora.",
+                    "contato_inicial": "Conexão rápida e consultiva.",
+                    "isolamento_objecao": "Perguntou o que faltava para a parceira atual ser 10/10.",
+                    "qualidade_investigacao": "Investigou o custo mensal atual de telefonia."
+                },
+                "detalhes_interlocutor": {
+                    "interesse_expresso": "Suporte técnico com atendimento humano ágil",
+                    "duvidas": "Custos de portabilidade",
+                    "objecoes": "Contrato com vigência de mais 2 meses",
+                    "resposta_sdr": "Mostrou que o tempo de implantação casa com o encerramento do contrato",
+                    "reacao_interlocutor": "Entendeu o planejamento e agendou conversa"
+                }
+            },
+            {
+                "protocolo": 202611030018,
+                "log": "LOG_20261103_0018",
+                "numero": "41988112233",
+                "nota": 89,
+                "audio_url": "/audios/202611030018.mp3",
+                "interlocutor": "Lead (41988112233)",
+                "transcricao": "SDR: Marcos, tudo bem?... [Transcrição completa da ligação 3]",
+                "feedback_geral": "Boa condução do funil com foco em benefícios práticos.",
+                "resultado_frase": "Reunião de alinhamento técnico agendada.",
+                "acertos": "Firmeza na condução do roteiro.",
+                "melhorias": "Poderia ter explorado mais as dores do setor financeiro.",
+                "frase_alternativa": null,
+                "ponto_forte": "Assertividade no próximo passo e excelente postura investigativa.",
+                "notas_criterios": {
+                    "abertura": 90,
+                    "spin": 88,
+                    "perfil": 90,
+                    "bant": 86,
+                    "escuta": 90,
+                    "prox_passo": 90
+                },
+                "justificativa_criterios": {
+                    "abertura": 90,
+                    "spin": 88,
+                    "perfil": 90,
+                    "bant": 86,
+                    "escuta": 90,
+                    "prox_passo": 90
+                },
+                "justificativas_textuais": {
+                    "abertura": "Tom positivo e seguro.",
+                    "spin": "Identificou necessidade de gravação de chamadas para compliance.",
+                    "perfil": "Fit excelente com o produto corporativo.",
+                    "bant": "Prazo de decisão alinhado para 15 dias.",
+                    "escuta": "Boa tolerância a pausas do interlocutor.",
+                    "prox_passo": "Enviou convite no Google Calendar ainda em linha."
+                },
+                "criterios_qualitativos": {
+                    "validacao_dor": "Foco no risco jurídico de não gravar as chamadas dos corretores.",
+                    "contato_inicial": "Cordial e objetivo.",
+                    "isolamento_objecao": "Tratou receio de complexidade de instalação com tranquilidade.",
+                    "qualidade_investigacao": "Descobriu o número de corretores ativos na empresa."
+                },
+                "detalhes_interlocutor": {
+                    "interesse_expresso": "Armazenamento em nuvem de chamadas por 5 anos",
+                    "duvidas": "Segurança e conformidade LGPD",
+                    "objecoes": "Receio de lentidão na nuvem",
+                    "resposta_sdr": "Esclareceu sobre os servidores dedicados e certificações",
+                    "reacao_interlocutor": "Satisfeito com a resposta técnica"
+                }
+            }
+        ],
+        "top_3_piores": [
+            {
+                "protocolo": 202611020005,
+                "log": "LOG_20261102_0005",
+                "numero": "21977665544",
+                "nota": 48,
+                "audio_url": "/audios/202611020005.mp3",
+                "interlocutor": "Lead (21977665544)",
+                "transcricao": "SDR: Alô, Carlos? Tudo bem? Sou o Lucas da SONAX Telecomunicações... Interlocutor: Olha Lucas, estou na correria danada aqui fechando a folha. Me manda um e-mail com a apresentação de vocês que depois eu vejo... SDR: Ah, com certeza Carlos, sem problemas! Qual é o seu melhor e-mail?... Interlocutor: carlos@empresa.com.br... SDR: Anotei aqui, vou te mandar um PDF completo tá bom? Muito obrigado pelo seu tempo e bom trabalho!... Interlocutor: Valeu, tchau.",
+                "feedback_geral": "Descarte imediato para e-mail sem qualquer tentativa de isolamento de objeção ou qualificação mínima.",
+                "resultado_frase": "Lead descartou ligação pedindo envio de apresentação por e-mail.",
+                "acertos": "Educação e simpatia no atendimento.",
+                "melhorias": "Cedeu de primeira ao pedido de envio de e-mail sem validar se há interesse ou prioridade.",
+                "frase_alternativa": "Entendo perfeitamente sua correria Carlos! Só para eu não lotar sua caixa de entrada à toa: hoje telecomunicações e estabilidade das ligações é algo que tira seu sono, ou está 100% resolvido?",
+                "falha_critica": "Descarte passivo sem validação de dor nem tentativa de isolamento da objeção de tempo.",
+                "notas_criterios": {
+                    "abertura": 55,
+                    "spin": 40,
+                    "perfil": 50,
+                    "bant": 40,
+                    "escuta": 60,
+                    "prox_passo": 45
+                },
+                "justificativa_criterios": {
+                    "abertura": 55,
+                    "spin": 40,
+                    "perfil": 50,
+                    "bant": 40,
+                    "escuta": 60,
+                    "prox_passo": 45
+                },
+                "justificativas_textuais": {
+                    "abertura": "Apresentação padrão de telemarketing que gerou barreira instantânea no tomador.",
+                    "spin": "Não aplicou nenhuma pergunta de implicação ou situação.",
+                    "perfil": "Não confirmou nem mesmo se a empresa possui o porte mínimo exigido.",
+                    "bant": "Zero mapeamento de orçamento ou prazo.",
+                    "escuta": "Ouviu o lead, mas não soube usar a resposta para reter a conversa.",
+                    "prox_passo": "Prometeu envio de PDF que raramente será lido pelo decisor."
+                },
+                "criterios_qualitativos": {
+                    "validacao_dor": "Não houve validação da dor; aceitou a desculpa de tempo como verdade absoluta.",
+                    "contato_inicial": "Tom inseguro e sem quebra de padrão inicial.",
+                    "isolamento_objecao": "Nenhuma tentativa de isolar a objeção.",
+                    "qualidade_investigacao": "Nenhuma pergunta investigativa realizada."
+                },
+                "detalhes_interlocutor": {
+                    "interesse_expresso": "Nenhum",
+                    "duvidas": "Nenhuma",
+                    "objecoes": "Falta de tempo e pedido de envio de e-mail",
+                    "resposta_sdr": "Aceitou passivamente",
+                    "reacao_interlocutor": "Desligou apressado"
+                }
+            },
+            {
+                "protocolo": 202611030022,
+                "log": "LOG_20261103_0022",
+                "numero": "19987651234",
+                "nota": 52,
+                "audio_url": "/audios/202611030022.mp3",
+                "interlocutor": "Lead (19987651234)",
+                "transcricao": "SDR: Alô, Mariana?... [Transcrição completa da ligação 5]",
+                "feedback_geral": "Falta de firmeza ao ser confrontado com a objeção de que a empresa já possui outra ferramenta.",
+                "resultado_frase": "Lead informou que possui contrato vigente e encerrou a ligação.",
+                "acertos": "Foi cordial durante toda a chamada.",
+                "melhorias": "Não explorou se a ferramenta atual atende plenamente as expectativas do time.",
+                "frase_alternativa": "Que ótimo que já usam telefonia em nuvem! O que vocês mais valorizam neles hoje e o que você gostaria que fosse melhor?",
+                "falha_critica": "Paralisou diante da objeção de concorrência e não buscou brechas de insatisfação.",
+                "notas_criterios": {
+                    "abertura": 60,
+                    "spin": 45,
+                    "perfil": 55,
+                    "bant": 48,
+                    "escuta": 55,
+                    "prox_passo": 50
+                },
+                "justificativa_criterios": {
+                    "abertura": 60,
+                    "spin": 45,
+                    "perfil": 55,
+                    "bant": 48,
+                    "escuta": 55,
+                    "prox_passo": 50
+                },
+                "justificativas_textuais": {
+                    "abertura": "Abertura aceitável, mas sem gancho de interesse.",
+                    "spin": "Perguntas superficiais.",
+                    "perfil": "Lead qualificado, mas mal aproveitado.",
+                    "bant": "Não explorou quando o contrato encerra.",
+                    "escuta": "Interrompeu o interlocutor uma vez.",
+                    "prox_passo": "Encerrou sem deixar porta aberta para follow-up futuro."
+                },
+                "criterios_qualitativos": {
+                    "validacao_dor": "Não investigou dores ocultas.",
+                    "contato_inicial": "Faltou energia e autoridade no tom de voz.",
+                    "isolamento_objecao": "Considerou contrato vigente como barreira intransponível.",
+                    "qualidade_investigacao": "Faltou profundidade para mapear o concorrente."
+                },
+                "detalhes_interlocutor": {
+                    "interesse_expresso": "Baixo",
+                    "duvidas": "Nenhuma",
+                    "objecoes": "Já temos fornecedor há 2 anos",
+                    "resposta_sdr": "Apenas agradeceu e disse que retornaria no ano que vem",
+                    "reacao_interlocutor": "Fria e desinteressada"
+                }
+            },
+            {
+                "protocolo": 202611050041,
+                "log": "LOG_20261105_0041",
+                "numero": "85991234567",
+                "nota": 56,
+                "audio_url": "/audios/202611050041.mp3",
+                "interlocutor": "Lead (85991234567)",
+                "transcricao": "SDR: Bom dia, falo com o responsável pelo TI?... [Transcrição completa da ligação 6]",
+                "feedback_geral": "Dificuldade em passar pelo filtro da secretária e conexão fraca com o decisor.",
+                "resultado_frase": "Interlocutor recusou prosseguir alegando ausência de orçamento.",
+                "acertos": "Tentativa de encontrar o decisor correto.",
+                "melhorias": "Sugerir reunião técnica antes de demonstrar valor financeiro.",
+                "frase_alternativa": "Compreendo que o momento é de corte de custos. É exatamente por isso que nossa solução costuma gerar economia de até 30% em relação aos planos tradicionais...",
+                "falha_critica": "Falhou em transformar o custo em oportunidade de economia.",
+                "notas_criterios": {
+                    "abertura": 58,
+                    "spin": 52,
+                    "perfil": 60,
+                    "bant": 50,
+                    "escuta": 60,
+                    "prox_passo": 50
+                },
+                "justificativa_criterios": {
+                    "abertura": 58,
+                    "spin": 52,
+                    "perfil": 60,
+                    "bant": 50,
+                    "escuta": 60,
+                    "prox_passo": 50
+                },
+                "justificativas_textuais": {
+                    "abertura": "Chegou falando sobre o produto antes de entender o cenário.",
+                    "spin": "Pouco foco em dor real.",
+                    "perfil": "Porte de empresa adequado.",
+                    "bant": "Travou na resposta de falta de budget.",
+                    "escuta": "Razoável.",
+                    "prox_passo": "Sem próximo passo definido."
+                },
+                "criterios_qualitativos": {
+                    "validacao_dor": "Não conectou com o problema de telecom.",
+                    "contato_inicial": "Pareceu vendedor tradicional de telefonia.",
+                    "isolamento_objecao": "Não contornou a objeção de verba.",
+                    "qualidade_investigacao": "Perguntas muito fechadas com respostas de sim/não."
+                },
+                "detalhes_interlocutor": {
+                    "interesse_expresso": "Nenhum",
+                    "duvidas": "Nenhuma",
+                    "objecoes": "Empresa cortou todos os investimentos no momento",
+                    "resposta_sdr": "Disse que compreendia e encerrou",
+                    "reacao_interlocutor": "Cortês, porém encerrou rapidamente"
+                }
+            }
+        ]
+    }
+}
