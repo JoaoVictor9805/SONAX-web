@@ -1487,11 +1487,11 @@ const Layer4PracticalEvidences = ({
                   const meta = CRITERIA_META[key];
                   const notaCrit =
                     selectedCall.call.notas_criterios[
-                      key as keyof CallEvidence["notas_criterios"]
+                    key as keyof CallEvidence["notas_criterios"]
                     ];
                   const justCrit =
                     selectedCall.call.justificativas_textuais[
-                      key as keyof CallEvidence["justificativas_textuais"]
+                    key as keyof CallEvidence["justificativas_textuais"]
                     ];
 
                   return (
@@ -1580,46 +1580,60 @@ export default function Dashboard() {
       });
   }, []);
 
-  const loadProfile = React.useCallback(async () => {
-    if (escopo !== "pessoal" || granularidade !== "semanal") {
-      return;
-    }
+  const requestIdRef = React.useRef(0);
 
-    setIsLoading(true);
-    setErrorMsg(null);
-
-    try {
-      const agentObj = agentsList.find(
-        (a) => a.agente_nome.toLowerCase() === selectedEntity.toLowerCase()
-      );
-      const periodObj = periodsList.find((p) => p.chave === selectedPeriodKey);
-
-      const ano = periodObj?.ano || 2026;
-      const mes = periodObj?.mes || 11;
-      const semana_do_mes = periodObj?.semana_do_mes || 1;
-
-      const data = await fetchPerfilConsolidado({
-        id_agente: agentObj?.id_agente,
-        agente_nome: selectedEntity,
-        ano,
-        mes,
-        semana_do_mes,
-      });
-
-      setProfileData(data);
-    } catch (err: any) {
-      if (err?.message === "NOT_FOUND") {
-        setErrorMsg("Perfil não consolidado para este SDR neste período.");
-      } else {
-        setErrorMsg(
-          "Não foi possível conectar à API do Backend (verifique se a porta 3333 está ativa)."
-        );
+  const loadProfile = React.useCallback(
+    async (overridePeriodKey?: string) => {
+      if (escopo !== "pessoal" || granularidade !== "semanal") {
+        return;
       }
-      setProfileData(null);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [escopo, granularidade, selectedEntity, selectedPeriodKey, agentsList, periodsList]);
+
+      const currentReqId = ++requestIdRef.current;
+      const effectivePeriodKey = overridePeriodKey || selectedPeriodKey;
+
+      setIsLoading(true);
+      setErrorMsg(null);
+
+      try {
+        const agentObj = agentsList.find(
+          (a) => a.agente_nome.toLowerCase() === selectedEntity.toLowerCase()
+        );
+        const periodObj = periodsList.find(
+          (p) => p.chave === effectivePeriodKey
+        );
+
+        const ano = periodObj?.ano || 2026;
+        const mes = periodObj?.mes || 11;
+        const semana_do_mes = periodObj?.semana_do_mes || 1;
+
+        const data = await fetchPerfilConsolidado({
+          id_agente: agentObj?.id_agente,
+          agente_nome: selectedEntity,
+          ano,
+          mes,
+          semana_do_mes,
+        });
+
+        if (currentReqId !== requestIdRef.current) return;
+        setProfileData(data);
+      } catch (err: any) {
+        if (currentReqId !== requestIdRef.current) return;
+        if (err?.message === "NOT_FOUND") {
+          setErrorMsg("Perfil não consolidado para este SDR neste período.");
+        } else {
+          setErrorMsg(
+            "Não foi possível conectar à API do Backend (verifique se a porta 3333 está ativa)."
+          );
+        }
+        setProfileData(null);
+      } finally {
+        if (currentReqId === requestIdRef.current) {
+          setIsLoading(false);
+        }
+      }
+    },
+    [escopo, granularidade, selectedEntity, selectedPeriodKey, agentsList, periodsList]
+  );
 
   React.useEffect(() => {
     loadProfile();
@@ -1749,8 +1763,12 @@ export default function Dashboard() {
                   type="button"
                   whileTap={{ scale: 0.97 }}
                   onClick={() => {
-                    setSelectedPeriodKey("sem1-11-2026");
-                    loadProfile();
+                    const targetKey = periodsList[0]?.chave || "sem1-11-2026";
+                    if (selectedPeriodKey === targetKey) {
+                      loadProfile(targetKey);
+                    } else {
+                      setSelectedPeriodKey(targetKey);
+                    }
                   }}
                   className="px-5 py-2 rounded-full text-xs font-medium bg-zinc-900 text-white hover:bg-zinc-800 transition-all"
                 >

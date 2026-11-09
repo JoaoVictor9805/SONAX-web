@@ -54,3 +54,4 @@ A biblioteca `motion` (`import { motion, AnimatePresence } from "motion/react"`)
 ### 2.6. Micro-interações nos Cards de KPI e Botões (`whileHover` / `whileTap`)
 - **Onde:** Nos 5 cards de KPI da Camada 2 e nos botões de ação (*Ver detalhes*).
 - **Comportamento:** Leve elevação de `2px` ao passar o mouse (`whileHover={{ y: -2 }}`) e sutil compressão ao clicar (`whileTap={{ scale: 0.98 }}`), dando resposta visual imediata a cada clique.
+
