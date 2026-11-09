@@ -131,44 +131,62 @@ export function montarCamadas({ kpis, historico, amostragem, respostaIA, registr
     // Identifica a última semana anterior mais recente
     const penultimaSemanaObj = historico.length >= 2 ? historico[historico.length - 2] : null;
     const notaMediaAnterior = penultimaSemanaObj ? Number(penultimaSemanaObj.media_nota_geral || 0) : null;
-    const deltaPeriodoAnterior = notaMediaAnterior !== null ? Math.round(notaMediaGeral - notaMediaAnterior) : 0;
+    const deltaPeriodoAnterior = notaMediaAnterior !== null ? Number((notaMediaGeral - notaMediaAnterior).toFixed(1)) : 0;
 
     const criteriosRadar = [
         {
+            codigo: "abertura",
             criterio: "Abertura",
+            descricao: "Abertura clara, motivo do contato e relevância para o interlocutor",
+            teto: 10,
             nota: Number(kpis.media_abertura || 0),
-            nota_anterior: penultimaSemanaObj ? Number(penultimaSemanaObj.media_abertura || 0) : null,
-            delta: penultimaSemanaObj ? Math.round(Number(kpis.media_abertura || 0) - Number(penultimaSemanaObj.media_abertura || 0)) : 0,
+            nota_anterior: penultimaSemanaObj ? Number(penultimaSemanaObj.media_abertura || 0) : Number(kpis.media_abertura || 0),
+            delta: penultimaSemanaObj ? Number((Number(kpis.media_abertura || 0) - Number(penultimaSemanaObj.media_abertura || 0)).toFixed(1)) : 0,
         },
         {
+            codigo: "spin",
             criterio: "SPIN",
+            descricao: "Descoberta SPIN: Situação (5), Problema (10), Implicação (8), Necessidade de solução (7)",
+            teto: 30,
             nota: Number(kpis.media_spin || 0),
-            nota_anterior: penultimaSemanaObj ? Number(penultimaSemanaObj.media_spin || 0) : null,
-            delta: penultimaSemanaObj ? Math.round(Number(kpis.media_spin || 0) - Number(penultimaSemanaObj.media_spin || 0)) : 0,
+            nota_anterior: penultimaSemanaObj ? Number(penultimaSemanaObj.media_spin || 0) : Number(kpis.media_spin || 0),
+            delta: penultimaSemanaObj ? Number((Number(kpis.media_spin || 0) - Number(penultimaSemanaObj.media_spin || 0)).toFixed(1)) : 0,
         },
         {
+            codigo: "perfil",
             criterio: "Perfil ICP",
+            descricao: "Investigação adequada do perfil: setor (5), regime tributário (10), faturamento (10)",
+            teto: 25,
             nota: Number(kpis.media_perfil || 0),
-            nota_anterior: penultimaSemanaObj ? Number(penultimaSemanaObj.media_perfil || 0) : null,
-            delta: penultimaSemanaObj ? Math.round(Number(kpis.media_perfil || 0) - Number(penultimaSemanaObj.media_perfil || 0)) : 0,
+            nota_anterior: penultimaSemanaObj ? Number(penultimaSemanaObj.media_perfil || 0) : Number(kpis.media_perfil || 0),
+            delta: penultimaSemanaObj ? Number((Number(kpis.media_perfil || 0) - Number(penultimaSemanaObj.media_perfil || 0)).toFixed(1)) : 0,
         },
         {
+            codigo: "bant",
             criterio: "BANT",
+            descricao: "Investigação BANT: viabilidade comercial (2), autoridade (5), necessidade (5), prazo (3)",
+            teto: 15,
             nota: Number(kpis.media_bant || 0),
-            nota_anterior: penultimaSemanaObj ? Number(penultimaSemanaObj.media_bant || 0) : null,
-            delta: penultimaSemanaObj ? Math.round(Number(kpis.media_bant || 0) - Number(penultimaSemanaObj.media_bant || 0)) : 0,
+            nota_anterior: penultimaSemanaObj ? Number(penultimaSemanaObj.media_bant || 0) : Number(kpis.media_bant || 0),
+            delta: penultimaSemanaObj ? Number((Number(kpis.media_bant || 0) - Number(penultimaSemanaObj.media_bant || 0)).toFixed(1)) : 0,
         },
         {
+            codigo: "escuta",
             criterio: "Escuta Ativa",
+            descricao: "Escuta, aprofundamento e tratamento respeitoso de dúvidas ou objeções",
+            teto: 10,
             nota: Number(kpis.media_escuta || 0),
-            nota_anterior: penultimaSemanaObj ? Number(penultimaSemanaObj.media_escuta || 0) : null,
-            delta: penultimaSemanaObj ? Math.round(Number(kpis.media_escuta || 0) - Number(penultimaSemanaObj.media_escuta || 0)) : 0,
+            nota_anterior: penultimaSemanaObj ? Number(penultimaSemanaObj.media_escuta || 0) : Number(kpis.media_escuta || 0),
+            delta: penultimaSemanaObj ? Number((Number(kpis.media_escuta || 0) - Number(penultimaSemanaObj.media_escuta || 0)).toFixed(1)) : 0,
         },
         {
+            codigo: "prox_passo",
             criterio: "Próximo Passo",
+            descricao: "Proposta de próximo passo pertinente e tentativa de obter compromisso claro",
+            teto: 10,
             nota: Number(kpis.media_prox_passo || 0),
-            nota_anterior: penultimaSemanaObj ? Number(penultimaSemanaObj.media_prox_passo || 0) : null,
-            delta: penultimaSemanaObj ? Math.round(Number(kpis.media_prox_passo || 0) - Number(penultimaSemanaObj.media_prox_passo || 0)) : 0,
+            nota_anterior: penultimaSemanaObj ? Number(penultimaSemanaObj.media_prox_passo || 0) : Number(kpis.media_prox_passo || 0),
+            delta: penultimaSemanaObj ? Number((Number(kpis.media_prox_passo || 0) - Number(penultimaSemanaObj.media_prox_passo || 0)).toFixed(1)) : 0,
         },
     ];
 
