@@ -1,4 +1,5 @@
 import * as React from "react";
+import { motion, AnimatePresence } from "motion/react";
 import {
   AlertTriangle,
   Target,
@@ -218,7 +219,6 @@ const Header = ({
 
   const isScopeEquipe = escopo === "equipe";
 
-  // Agrupa períodos semanais por mês/ano
   const groupedPeriods = React.useMemo(() => {
     const map = new Map<string, PeriodOption[]>();
     for (const p of periodsList) {
@@ -243,7 +243,7 @@ const Header = ({
           </span>
         </div>
 
-        {/* Center Pill Navigation: Seletor de Escopo */}
+        {/* Center Pill Navigation: Seletor de Escopo com layoutId */}
         <div className="inline-flex items-center bg-white p-1.5 rounded-full shadow-[0_2px_10px_rgba(0,0,0,0.03)] self-start lg:self-auto">
           {(
             [
@@ -251,21 +251,31 @@ const Header = ({
               { id: "departamento", label: "Departamento" },
               { id: "equipe", label: "Equipe Geral" },
             ] as const
-          ).map((tab) => (
-            <button
-              key={tab.id}
-              type="button"
-              onClick={() => handleScopeChange(tab.id)}
-              className={cn(
-                "px-5 py-2 rounded-full text-xs font-medium transition-all",
-                escopo === tab.id
-                  ? "bg-zinc-900 text-white shadow-sm"
-                  : "text-zinc-600 hover:text-zinc-900"
-              )}
-            >
-              {tab.label}
-            </button>
-          ))}
+          ).map((tab) => {
+            const isActive = escopo === tab.id;
+            return (
+              <button
+                key={tab.id}
+                type="button"
+                onClick={() => handleScopeChange(tab.id)}
+                className={cn(
+                  "relative px-5 py-2 rounded-full text-xs font-medium transition-colors",
+                  isActive
+                    ? "text-white"
+                    : "text-zinc-600 hover:text-zinc-900"
+                )}
+              >
+                {isActive && (
+                  <motion.span
+                    layoutId="scope-pill"
+                    className="absolute inset-0 rounded-full bg-zinc-900 shadow-sm"
+                    transition={{ type: "spring", stiffness: 400, damping: 32 }}
+                  />
+                )}
+                <span className="relative z-10">{tab.label}</span>
+              </button>
+            );
+          })}
         </div>
 
         {/* Right: Campo Autocomplete */}
@@ -317,81 +327,104 @@ const Header = ({
               )}
             </div>
 
-            {isDropdownOpen && !isScopeEquipe && (
-              <div className="absolute z-50 mt-2 w-full bg-white rounded-3xl border border-zinc-100 shadow-xl max-h-60 overflow-y-auto p-2">
-                {filteredSuggestions.length > 0 ? (
-                  filteredSuggestions.map((item, idx) => (
-                    <button
-                      key={idx}
-                      type="button"
-                      onClick={() => {
-                        setSelectedEntity(item);
-                        setSearchQuery(item);
-                        setIsDropdownOpen(false);
-                      }}
-                      className={cn(
-                        "w-full text-left px-4 py-2.5 text-xs rounded-2xl flex items-center justify-between transition-colors",
-                        selectedEntity === item
-                          ? "bg-zinc-900 text-white font-medium"
-                          : "text-zinc-700 hover:bg-zinc-100"
-                      )}
-                    >
-                      <span>{item}</span>
-                      {selectedEntity === item && (
-                        <Check className="h-3.5 w-3.5 text-emerald-300" />
-                      )}
-                    </button>
-                  ))
-                ) : (
-                  <div className="px-4 py-3 text-xs text-zinc-400">
-                    Nenhum nome semelhante encontrado.
-                  </div>
-                )}
-              </div>
-            )}
+            <AnimatePresence>
+              {isDropdownOpen && !isScopeEquipe && (
+                <motion.div
+                  initial={{ opacity: 0, y: -6, scale: 0.98 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: -6, scale: 0.98 }}
+                  transition={{ duration: 0.16, ease: "easeOut" }}
+                  className="absolute z-50 mt-2 w-full bg-white rounded-3xl border border-zinc-100 shadow-xl max-h-60 overflow-y-auto p-2"
+                >
+                  {filteredSuggestions.length > 0 ? (
+                    filteredSuggestions.map((item, idx) => (
+                      <button
+                        key={idx}
+                        type="button"
+                        onClick={() => {
+                          setSelectedEntity(item);
+                          setSearchQuery(item);
+                          setIsDropdownOpen(false);
+                        }}
+                        className={cn(
+                          "w-full text-left px-4 py-2.5 text-xs rounded-2xl flex items-center justify-between transition-colors",
+                          selectedEntity === item
+                            ? "bg-zinc-900 text-white font-medium"
+                            : "text-zinc-700 hover:bg-zinc-100"
+                        )}
+                      >
+                        <span>{item}</span>
+                        {selectedEntity === item && (
+                          <Check className="h-3.5 w-3.5 text-emerald-300" />
+                        )}
+                      </button>
+                    ))
+                  ) : (
+                    <div className="px-4 py-3 text-xs text-zinc-400">
+                      Nenhum nome semelhante encontrado.
+                    </div>
+                  )}
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
         </div>
       </div>
 
       {/* Second Row: Título Principal + Controles de Período */}
       <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 pt-2">
-        <div>
+        <motion.div
+          key={selectedEntity}
+          initial={{ opacity: 0, x: -6 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.25, ease: "easeOut" }}
+        >
           <h1 className="text-4xl font-normal tracking-tight text-zinc-900">
             {selectedEntity}
           </h1>
           <p className="text-sm text-zinc-500 mt-1">
             {periodoLabel} • {departamentoNome}
           </p>
-        </div>
+        </motion.div>
 
         {/* Controles de Granularidade e Período */}
         <div className="flex flex-wrap items-center gap-3">
-          {/* Pílula de Granularidade */}
+          {/* Pílula de Granularidade com layoutId */}
           <div className="inline-flex items-center bg-white p-1 rounded-full shadow-[0_2px_10px_rgba(0,0,0,0.03)]">
-            <button
-              type="button"
-              onClick={() => setGranularidade("semanal")}
-              className={cn(
-                "px-4 py-1.5 rounded-full text-xs font-medium transition-all",
-                granularidade === "semanal"
-                  ? "bg-zinc-900 text-white"
-                  : "text-zinc-600 hover:text-zinc-900"
-              )}
-            >
-              Semanal
-            </button>
-            <button
-              type="button"
-              onClick={() => setGranularidade("mensal")}
-              className={cn(
-                "px-4 py-1.5 rounded-full text-xs font-medium transition-all",
-                granularidade === "mensal"
-                  ? "bg-zinc-900 text-white"
-                  : "text-zinc-600 hover:text-zinc-900"
-              )}
-            >
-              Mensal
-            </button>
+            {(
+              [
+                { id: "semanal", label: "Semanal" },
+                { id: "mensal", label: "Mensal" },
+              ] as const
+            ).map((g) => {
+              const isActive = granularidade === g.id;
+              return (
+                <button
+                  key={g.id}
+                  type="button"
+                  onClick={() => setGranularidade(g.id)}
+                  className={cn(
+                    "relative px-4 py-1.5 rounded-full text-xs font-medium transition-colors",
+                    isActive
+                      ? "text-white"
+                      : "text-zinc-600 hover:text-zinc-900"
+                  )}
+                >
+                  {isActive && (
+                    <motion.span
+                      layoutId="granularity-pill"
+                      className="absolute inset-0 rounded-full bg-zinc-900"
+                      transition={{
+                        type: "spring",
+                        stiffness: 400,
+                        damping: 32,
+                      }}
+                    />
+                  )}
+                  <span className="relative z-10">{g.label}</span>
+                </button>
+              );
+            })}
           </div>
 
           {/* Seletor de Período */}
@@ -495,7 +528,12 @@ const Layer1ExecutiveSection = ({
   ];
 
   return (
-    <div className="mb-8 space-y-4">
+    <motion.div
+      initial={{ opacity: 0, y: 14 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.35, ease: "easeOut" }}
+      className="mb-8 space-y-4"
+    >
       <div className="flex items-center justify-between px-1">
         <h2 className="text-sm font-medium uppercase tracking-wider text-zinc-400">
           Camada 1 • Síntese Executiva & Diagnóstico Geral
@@ -620,7 +658,7 @@ const Layer1ExecutiveSection = ({
           </div>
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 };
 
@@ -670,7 +708,6 @@ const Layer2VolumeAndQuality = ({
     },
   ];
 
-  // Normalização para 100% para o Gráfico de Radar respeitando os tetos (10, 30, 25, 15, 10, 10)
   const normalizedRadarData = camada2.criterios_radar.map((item) => {
     const meta = CRITERIA_META[item.codigo] || {
       label: item.criterio,
@@ -688,7 +725,12 @@ const Layer2VolumeAndQuality = ({
   });
 
   return (
-    <div className="mb-8 space-y-4">
+    <motion.div
+      initial={{ opacity: 0, y: 14 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.35, delay: 0.06, ease: "easeOut" }}
+      className="mb-8 space-y-4"
+    >
       <div className="flex items-center justify-between px-1">
         <h2 className="text-sm font-medium uppercase tracking-wider text-zinc-400">
           Camada 2 • Volume Operacional, Evolução & Critérios de Qualidade
@@ -697,8 +739,10 @@ const Layer2VolumeAndQuality = ({
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
         {kpiCards.map((kpi, idx) => (
-          <div
+          <motion.div
             key={idx}
+            whileHover={{ y: -2 }}
+            transition={{ duration: 0.18 }}
             className="bg-white rounded-[24px] p-5 shadow-[0_2px_10px_rgba(0,0,0,0.03)] flex flex-col justify-between h-32"
           >
             <div className="flex items-center justify-between gap-2">
@@ -717,7 +761,7 @@ const Layer2VolumeAndQuality = ({
                 {kpi.unit}
               </span>
             </div>
-          </div>
+          </motion.div>
         ))}
       </div>
 
@@ -832,138 +876,170 @@ const Layer2VolumeAndQuality = ({
             </div>
 
             <div className="inline-flex items-center bg-[#F3F3F1] p-1 rounded-full self-start">
-              <button
-                type="button"
-                onClick={() => setCriteriaViewMode("bars")}
-                className={cn(
-                  "px-4 py-1.5 text-xs font-medium rounded-full transition-all",
-                  criteriaViewMode === "bars"
-                    ? "bg-zinc-900 text-white shadow-sm"
-                    : "text-zinc-600 hover:text-zinc-900"
-                )}
-              >
-                Barras
-              </button>
-              <button
-                type="button"
-                onClick={() => setCriteriaViewMode("radar")}
-                className={cn(
-                  "px-4 py-1.5 text-xs font-medium rounded-full transition-all",
-                  criteriaViewMode === "radar"
-                    ? "bg-zinc-900 text-white shadow-sm"
-                    : "text-zinc-600 hover:text-zinc-900"
-                )}
-              >
-                Radar (100%)
-              </button>
-            </div>
-          </div>
-
-          {criteriaViewMode === "bars" ? (
-            <div className="space-y-3.5 pt-1">
-              {camada2.criterios_radar.map((crit, idx) => {
-                const meta = CRITERIA_META[crit.codigo] || {
-                  label: crit.criterio,
-                  teto: crit.teto || 10,
-                  descricao: crit.descricao || "",
-                };
-                const teto = crit.teto || meta.teto;
-                const descricao = crit.descricao || meta.descricao;
-                const pctAtual = Math.min(
-                  100,
-                  Math.round((crit.nota / teto) * 100)
-                );
-                const diff = +(
-                  crit.nota - (crit.nota_anterior ?? crit.nota)
-                ).toFixed(1);
-
+              {(
+                [
+                  { id: "bars", label: "Barras" },
+                  { id: "radar", label: "Radar (100%)" },
+                ] as const
+              ).map((mode) => {
+                const isActive = criteriaViewMode === mode.id;
                 return (
-                  <div
-                    key={idx}
-                    className="py-1.5 border-b border-zinc-100/80 last:border-0"
-                  >
-                    <div className="flex items-center justify-between gap-4">
-                      <div className="w-40 shrink-0">
-                        <span className="text-sm font-medium text-zinc-900 block">
-                          {crit.criterio}
-                        </span>
-                        <span className="text-[11px] text-zinc-400">
-                          {diff >= 0 ? `+${diff}` : diff} vs. anterior
-                        </span>
-                      </div>
-                      <div className="flex-1 bg-[#F3F3F1] h-2 rounded-full overflow-hidden">
-                        <div
-                          className="bg-[#145F5E] h-full rounded-full transition-all duration-300"
-                          style={{ width: `${pctAtual}%` }}
-                        />
-                      </div>
-                      <div className="w-20 text-right shrink-0">
-                        <span className="text-sm font-semibold text-zinc-900">
-                          {crit.nota}
-                        </span>
-                        <span className="text-xs text-zinc-400">
-                          {" "}
-                          / {teto}
-                        </span>
-                      </div>
-                    </div>
-                    {descricao && (
-                      <p className="text-[11px] text-zinc-400 mt-1 leading-snug">
-                        {descricao}
-                      </p>
+                  <button
+                    key={mode.id}
+                    type="button"
+                    onClick={() => setCriteriaViewMode(mode.id)}
+                    className={cn(
+                      "relative px-4 py-1.5 text-xs font-medium rounded-full transition-colors",
+                      isActive
+                        ? "text-white"
+                        : "text-zinc-600 hover:text-zinc-900"
                     )}
-                  </div>
+                  >
+                    {isActive && (
+                      <motion.span
+                        layoutId="criteria-view-pill"
+                        className="absolute inset-0 rounded-full bg-zinc-900 shadow-sm"
+                        transition={{
+                          type: "spring",
+                          stiffness: 400,
+                          damping: 32,
+                        }}
+                      />
+                    )}
+                    <span className="relative z-10">{mode.label}</span>
+                  </button>
                 );
               })}
             </div>
-          ) : (
-            <div className="h-[310px] w-full">
-              <ResponsiveContainer width="100%" height="100%">
-                <RadarChart
-                  data={normalizedRadarData}
-                  margin={{ top: 10, right: 30, bottom: 10, left: 30 }}
-                >
-                  <PolarGrid stroke="#E4E4E7" />
-                  <PolarAngleAxis
-                    dataKey="criterio"
-                    tick={{ fill: "#27272A", fontSize: 11, fontWeight: 500 }}
-                  />
-                  <PolarRadiusAxis
-                    domain={[0, 100]}
-                    tick={{ fill: "#71717A", fontSize: 10 }}
-                    tickFormatter={(v) => `${v}%`}
-                  />
-                  <RechartsTooltip
-                    formatter={(value: unknown, name: unknown, props: any) => [
-                      `${String(value)}% (${props.payload.nota_bruta}/${props.payload.teto} pts)`,
-                      String(name),
-                    ]}
-                  />
-                  <RechartsLegend wrapperStyle={{ fontSize: "12px" }} />
-                  <Radar
-                    name="Semana Atual (%)"
-                    dataKey="atual_pct"
-                    stroke="#145F5E"
-                    fill="#10B981"
-                    fillOpacity={0.3}
-                    strokeWidth={2}
-                  />
-                  <Radar
-                    name="Semana Anterior (%)"
-                    dataKey="anterior_pct"
-                    stroke="#18181B"
-                    fill="#18181B"
-                    fillOpacity={0.08}
-                    strokeWidth={1.5}
-                    strokeDasharray="4 4"
-                  />
-                </RadarChart>
-              </ResponsiveContainer>
-            </div>
-          )}
+          </div>
+
+          <AnimatePresence mode="wait">
+            {criteriaViewMode === "bars" ? (
+              <motion.div
+                key="bars"
+                initial={{ opacity: 0, y: 6 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -6 }}
+                transition={{ duration: 0.2 }}
+                className="space-y-3.5 pt-1"
+              >
+                {camada2.criterios_radar.map((crit, idx) => {
+                  const meta = CRITERIA_META[crit.codigo] || {
+                    label: crit.criterio,
+                    teto: crit.teto || 10,
+                    descricao: crit.descricao || "",
+                  };
+                  const teto = crit.teto || meta.teto;
+                  const descricao = crit.descricao || meta.descricao;
+                  const pctAtual = Math.min(
+                    100,
+                    Math.round((crit.nota / teto) * 100)
+                  );
+                  const diff = +(
+                    crit.nota - (crit.nota_anterior ?? crit.nota)
+                  ).toFixed(1);
+
+                  return (
+                    <div
+                      key={idx}
+                      className="py-1.5 border-b border-zinc-100/80 last:border-0"
+                    >
+                      <div className="flex items-center justify-between gap-4">
+                        <div className="w-40 shrink-0">
+                          <span className="text-sm font-medium text-zinc-900 block">
+                            {crit.criterio}
+                          </span>
+                          <span className="text-[11px] text-zinc-400">
+                            {diff >= 0 ? `+${diff}` : diff} vs. anterior
+                          </span>
+                        </div>
+                        <div className="flex-1 bg-[#F3F3F1] h-2 rounded-full overflow-hidden">
+                          <motion.div
+                            initial={{ width: 0 }}
+                            animate={{ width: `${pctAtual}%` }}
+                            transition={{
+                              duration: 0.55,
+                              delay: idx * 0.04,
+                              ease: "easeOut",
+                            }}
+                            className="bg-[#145F5E] h-full rounded-full"
+                          />
+                        </div>
+                        <div className="w-20 text-right shrink-0">
+                          <span className="text-sm font-semibold text-zinc-900">
+                            {crit.nota}
+                          </span>
+                          <span className="text-xs text-zinc-400">
+                            {" "}
+                            / {teto}
+                          </span>
+                        </div>
+                      </div>
+                      {descricao && (
+                        <p className="text-[11px] text-zinc-400 mt-1 leading-snug">
+                          {descricao}
+                        </p>
+                      )}
+                    </div>
+                  );
+                })}
+              </motion.div>
+            ) : (
+              <motion.div
+                key="radar"
+                initial={{ opacity: 0, scale: 0.97 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.97 }}
+                transition={{ duration: 0.2 }}
+                className="h-[310px] w-full"
+              >
+                <ResponsiveContainer width="100%" height="100%">
+                  <RadarChart
+                    data={normalizedRadarData}
+                    margin={{ top: 10, right: 30, bottom: 10, left: 30 }}
+                  >
+                    <PolarGrid stroke="#E4E4E7" />
+                    <PolarAngleAxis
+                      dataKey="criterio"
+                      tick={{ fill: "#27272A", fontSize: 11, fontWeight: 500 }}
+                    />
+                    <PolarRadiusAxis
+                      domain={[0, 100]}
+                      tick={{ fill: "#71717A", fontSize: 10 }}
+                      tickFormatter={(v) => `${v}%`}
+                    />
+                    <RechartsTooltip
+                      formatter={(value: unknown, name: unknown, props: any) => [
+                        `${String(value)}% (${props.payload.nota_bruta}/${props.payload.teto} pts)`,
+                        String(name),
+                      ]}
+                    />
+                    <RechartsLegend wrapperStyle={{ fontSize: "12px" }} />
+                    <Radar
+                      name="Semana Atual (%)"
+                      dataKey="atual_pct"
+                      stroke="#145F5E"
+                      fill="#10B981"
+                      fillOpacity={0.3}
+                      strokeWidth={2}
+                    />
+                    <Radar
+                      name="Semana Anterior (%)"
+                      dataKey="anterior_pct"
+                      stroke="#18181B"
+                      fill="#18181B"
+                      fillOpacity={0.08}
+                      strokeWidth={1.5}
+                      strokeDasharray="4 4"
+                    />
+                  </RadarChart>
+                </ResponsiveContainer>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 };
 
@@ -975,7 +1051,12 @@ const Layer3OpportunitiesObjections = ({
   data: ConsolidatedProfileData["diagnostico_camada_3"];
 }) => {
   return (
-    <div className="mb-8 space-y-4">
+    <motion.div
+      initial={{ opacity: 0, y: 14 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.35, delay: 0.12, ease: "easeOut" }}
+      className="mb-8 space-y-4"
+    >
       <div className="flex items-center justify-between px-1">
         <h2 className="text-sm font-medium uppercase tracking-wider text-zinc-400">
           Camada 3 • Oportunidades de Melhoria & Mapa de Objeções
@@ -1059,9 +1140,15 @@ const Layer3OpportunitiesObjections = ({
                     <TableCell className="align-top">
                       <div className="flex min-w-0 items-center gap-2">
                         <div className="w-[58%] max-w-[84px] min-w-0 bg-[#F3F3F1] h-2 rounded-full overflow-hidden shrink-0">
-                          <div
+                          <motion.div
+                            initial={{ width: 0 }}
+                            animate={{ width: `${obj.frequencia_percentual}%` }}
+                            transition={{
+                              duration: 0.55,
+                              delay: 0.15 + i * 0.05,
+                              ease: "easeOut",
+                            }}
                             className="bg-[#145F5E] h-full rounded-full"
-                            style={{ width: `${obj.frequencia_percentual}%` }}
                           />
                         </div>
                         <span className="text-[10px] font-semibold text-zinc-900 shrink-0">
@@ -1082,7 +1169,7 @@ const Layer3OpportunitiesObjections = ({
           </div>
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 };
 
@@ -1119,7 +1206,12 @@ const Layer4PracticalEvidences = ({
   };
 
   return (
-    <div className="space-y-4">
+    <motion.div
+      initial={{ opacity: 0, y: 14 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.35, delay: 0.18, ease: "easeOut" }}
+      className="space-y-4"
+    >
       <div className="flex items-center justify-between px-1">
         <h2 className="text-sm font-medium uppercase tracking-wider text-zinc-400">
           Camada 4 • Evidências Práticas & Auditoria de Ligações
@@ -1147,10 +1239,12 @@ const Layer4PracticalEvidences = ({
               const isSelected =
                 selectedCall?.call.protocolo === call.protocolo;
               return (
-                <div
+                <motion.div
                   key={call.protocolo}
+                  whileHover={{ x: 2 }}
+                  transition={{ duration: 0.15 }}
                   className={cn(
-                    "p-4 rounded-2xl transition-all flex items-center justify-between gap-4 border",
+                    "p-4 rounded-2xl transition-colors flex items-center justify-between gap-4 border",
                     isSelected
                       ? "bg-[#F3F3F1] border-emerald-400"
                       : "bg-[#F8F8F7] hover:bg-[#F3F3F1] border-transparent"
@@ -1168,8 +1262,9 @@ const Layer4PracticalEvidences = ({
                     </div>
                   </div>
 
-                  <button
+                  <motion.button
                     type="button"
+                    whileTap={{ scale: 0.96 }}
                     onClick={() => handleSelectCall(call, "best")}
                     className={cn(
                       "px-4 py-2 rounded-full text-xs font-medium shrink-0 inline-flex items-center gap-1.5 transition-all",
@@ -1180,8 +1275,8 @@ const Layer4PracticalEvidences = ({
                   >
                     <ArrowUpRight className="h-3.5 w-3.5" />
                     {isSelected ? "Ocultar" : "Ver detalhes"}
-                  </button>
-                </div>
+                  </motion.button>
+                </motion.div>
               );
             })}
           </div>
@@ -1207,10 +1302,12 @@ const Layer4PracticalEvidences = ({
               const isSelected =
                 selectedCall?.call.protocolo === call.protocolo;
               return (
-                <div
+                <motion.div
                   key={call.protocolo}
+                  whileHover={{ x: 2 }}
+                  transition={{ duration: 0.15 }}
                   className={cn(
-                    "p-4 rounded-2xl transition-all flex items-center justify-between gap-4 border",
+                    "p-4 rounded-2xl transition-colors flex items-center justify-between gap-4 border",
                     isSelected
                       ? "bg-red-50/50 border-red-300"
                       : "bg-[#F8F8F7] hover:bg-[#F3F3F1] border-transparent"
@@ -1228,8 +1325,9 @@ const Layer4PracticalEvidences = ({
                     </div>
                   </div>
 
-                  <button
+                  <motion.button
                     type="button"
+                    whileTap={{ scale: 0.96 }}
                     onClick={() => handleSelectCall(call, "worst")}
                     className={cn(
                       "px-4 py-2 rounded-full text-xs font-medium shrink-0 inline-flex items-center gap-1.5 transition-all",
@@ -1240,190 +1338,199 @@ const Layer4PracticalEvidences = ({
                   >
                     <ArrowUpRight className="h-3.5 w-3.5" />
                     {isSelected ? "Ocultar" : "Ver detalhes"}
-                  </button>
-                </div>
+                  </motion.button>
+                </motion.div>
               );
             })}
           </div>
         </div>
       </div>
 
-      {selectedCall && (
-        <div
-          className={cn(
-            "bg-white rounded-[28px] p-7 shadow-[0_8px_30px_rgba(0,0,0,0.06)] space-y-6 transition-all border",
-            selectedCall.type === "best"
-              ? "border-emerald-200"
-              : "border-red-200"
-          )}
-        >
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 pb-5 border-b border-zinc-100">
-            <div className="flex items-center gap-4">
-              <ScoreBadge score={selectedCall.call.nota} size="lg" />
-              <div>
-                <div className="flex items-center gap-2.5">
-                  <h3 className="text-xl font-medium text-zinc-900">
-                    Protocolo #{selectedCall.call.protocolo}
-                  </h3>
-                  <span
-                    className={cn(
-                      "px-3 py-0.5 rounded-full text-xs font-semibold shadow-sm",
-                      selectedCall.type === "best"
-                        ? "bg-emerald-300/60 text-[#145F5E]"
-                        : "bg-red-500 text-white"
-                    )}
-                  >
-                    {selectedCall.type === "best"
-                      ? "Destaque Positivo"
-                      : "Auditoria de Falha"}
-                  </span>
-                </div>
-                <p className="text-xs text-zinc-500 mt-1">
-                  {selectedCall.call.interlocutor} ({selectedCall.call.numero})
-                  • {selectedCall.call.resultado_frase}
-                </p>
-              </div>
-            </div>
-            <button
-              type="button"
-              onClick={() => setSelectedCall(null)}
-              className="px-4 py-2 rounded-full text-xs font-medium bg-[#F3F3F1] text-zinc-700 hover:bg-zinc-200 self-start md:self-auto"
-            >
-              Fechar detalhes
-            </button>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="p-4 rounded-2xl bg-[#F6F6F4]">
-              <span className="text-xs font-semibold text-zinc-900 block mb-1">
-                Feedback Geral
-              </span>
-              <p className="text-xs sm:text-sm text-zinc-600 leading-relaxed">
-                {selectedCall.call.feedback_geral}
-              </p>
-            </div>
-            <div className="p-4 rounded-2xl bg-emerald-50/70 border border-emerald-100">
-              <span className="text-xs font-semibold text-[#145F5E] block mb-1">
-                Acertos na Condução
-              </span>
-              <p className="text-xs sm:text-sm text-zinc-700 leading-relaxed">
-                {selectedCall.call.acertos}
-              </p>
-            </div>
-            <div
-              className={cn(
-                "p-4 rounded-2xl border",
-                selectedCall.type === "best"
-                  ? "bg-[#F6F6F4] border-transparent"
-                  : "bg-red-50/40 border-red-100"
-              )}
-            >
-              <span
-                className={cn(
-                  "text-xs font-semibold block mb-1",
-                  selectedCall.type === "best"
-                    ? "text-zinc-900"
-                    : "text-red-700"
-                )}
-              >
-                {selectedCall.type === "best"
-                  ? "Pontos de Melhoria"
-                  : "Falha Crítica Identificada"}
-              </span>
-              <p
-                className={cn(
-                  "text-xs sm:text-sm leading-relaxed",
-                  selectedCall.type === "best"
-                    ? "text-zinc-600"
-                    : "text-red-950"
-                )}
-              >
-                {selectedCall.type === "best"
-                  ? selectedCall.call.melhorias
-                  : selectedCall.call.falha_critica}
-              </p>
-            </div>
-          </div>
-
-          {selectedCall.call.frase_alternativa && (
-            <div className="grid grid-cols-1 md:grid-cols-2 overflow-hidden rounded-2xl bg-gradient-to-r from-[#F3F3F1] via-emerald-50/50 to-emerald-100/70 border border-emerald-100/50">
-              <div className="p-5 border-b md:border-b-0 md:border-r border-zinc-200/70">
-                <span className="inline-block px-3 py-0.5 rounded-full text-[11px] font-semibold bg-white/80 text-zinc-600 mb-2 shadow-sm">
-                  Frase Original
-                </span>
-                <p className="text-sm font-medium text-zinc-800 italic">
-                  "
-                  {selectedCall.call.frase_original ||
-                    selectedCall.call.resultado_frase}
-                  "
-                </p>
-              </div>
-              <div className="p-5">
-                <span className="inline-block px-3 py-0.5 rounded-full text-[11px] font-semibold bg-white text-[#145F5E] mb-2 shadow-sm">
-                  Frase Alternativa Sugerida pela IA
-                </span>
-                <p className="text-sm font-medium text-zinc-900 italic">
-                  "{selectedCall.call.frase_alternativa}"
-                </p>
-              </div>
-            </div>
-          )}
-
-          <div>
-            <h4 className="text-xs font-medium uppercase tracking-wider text-zinc-400 mb-3">
-              Notas por Critério & Justificativas ({selectedCall.call.nota}/100
-              pts)
-            </h4>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-              {(
-                Object.keys(CRITERIA_META) as Array<keyof typeof CRITERIA_META>
-              ).map((key) => {
-                const meta = CRITERIA_META[key];
-                const notaCrit =
-                  selectedCall.call.notas_criterios[
-                    key as keyof CallEvidence["notas_criterios"]
-                  ];
-                const justCrit =
-                  selectedCall.call.justificativas_textuais[
-                    key as keyof CallEvidence["justificativas_textuais"]
-                  ];
-
-                return (
-                  <div
-                    key={key}
-                    className="p-4 rounded-2xl bg-[#F6F6F4] space-y-1.5"
-                  >
-                    <div className="flex items-center justify-between">
-                      <span className="font-semibold text-xs text-zinc-900">
-                        {meta.label}
-                      </span>
-                      <span className="px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-white text-[#145F5E] shadow-sm border border-zinc-100">
-                        {notaCrit} / {meta.teto}
-                      </span>
-                    </div>
-                    <p className="text-[11px] text-zinc-400 leading-snug">
-                      {meta.descricao}
-                    </p>
-                    <p className="text-xs text-zinc-600 leading-relaxed pt-1">
-                      {justCrit}
-                    </p>
+      {/* Painel Expansível de Auditoria da Ligação com AnimatePresence */}
+      <AnimatePresence mode="wait">
+        {selectedCall && (
+          <motion.div
+            key={selectedCall.call.protocolo}
+            initial={{ opacity: 0, y: 12, scale: 0.99 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 8, scale: 0.99 }}
+            transition={{ duration: 0.25, ease: "easeOut" }}
+            className={cn(
+              "bg-white rounded-[28px] p-7 shadow-[0_8px_30px_rgba(0,0,0,0.06)] space-y-6 border",
+              selectedCall.type === "best"
+                ? "border-emerald-200"
+                : "border-red-200"
+            )}
+          >
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 pb-5 border-b border-zinc-100">
+              <div className="flex items-center gap-4">
+                <ScoreBadge score={selectedCall.call.nota} size="lg" />
+                <div>
+                  <div className="flex items-center gap-2.5">
+                    <h3 className="text-xl font-medium text-zinc-900">
+                      Protocolo #{selectedCall.call.protocolo}
+                    </h3>
+                    <span
+                      className={cn(
+                        "px-3 py-0.5 rounded-full text-xs font-semibold shadow-sm",
+                        selectedCall.type === "best"
+                          ? "bg-emerald-300/60 text-[#145F5E]"
+                          : "bg-red-500 text-white"
+                      )}
+                    >
+                      {selectedCall.type === "best"
+                        ? "Destaque Positivo"
+                        : "Auditoria de Falha"}
+                    </span>
                   </div>
-                );
-              })}
+                  <p className="text-xs text-zinc-500 mt-1">
+                    {selectedCall.call.interlocutor} ({selectedCall.call.numero})
+                    • {selectedCall.call.resultado_frase}
+                  </p>
+                </div>
+              </div>
+              <motion.button
+                type="button"
+                whileTap={{ scale: 0.96 }}
+                onClick={() => setSelectedCall(null)}
+                className="px-4 py-2 rounded-full text-xs font-medium bg-[#F3F3F1] text-zinc-700 hover:bg-zinc-200 self-start md:self-auto"
+              >
+                Fechar detalhes
+              </motion.button>
             </div>
-          </div>
 
-          <div>
-            <h4 className="text-xs font-medium uppercase tracking-wider text-zinc-400 mb-2">
-              Transcrição Bruta da Ligação
-            </h4>
-            <div className="p-5 rounded-2xl bg-zinc-900 text-zinc-100 font-mono text-xs leading-relaxed whitespace-pre-line max-h-72 overflow-y-auto">
-              {selectedCall.call.transcricao}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="p-4 rounded-2xl bg-[#F6F6F4]">
+                <span className="text-xs font-semibold text-zinc-900 block mb-1">
+                  Feedback Geral
+                </span>
+                <p className="text-xs sm:text-sm text-zinc-600 leading-relaxed">
+                  {selectedCall.call.feedback_geral}
+                </p>
+              </div>
+              <div className="p-4 rounded-2xl bg-emerald-50/70 border border-emerald-100">
+                <span className="text-xs font-semibold text-[#145F5E] block mb-1">
+                  Acertos na Condução
+                </span>
+                <p className="text-xs sm:text-sm text-zinc-700 leading-relaxed">
+                  {selectedCall.call.acertos}
+                </p>
+              </div>
+              <div
+                className={cn(
+                  "p-4 rounded-2xl border",
+                  selectedCall.type === "best"
+                    ? "bg-[#F6F6F4] border-transparent"
+                    : "bg-red-50/40 border-red-100"
+                )}
+              >
+                <span
+                  className={cn(
+                    "text-xs font-semibold block mb-1",
+                    selectedCall.type === "best"
+                      ? "text-zinc-900"
+                      : "text-red-700"
+                  )}
+                >
+                  {selectedCall.type === "best"
+                    ? "Pontos de Melhoria"
+                    : "Falha Crítica Identificada"}
+                </span>
+                <p
+                  className={cn(
+                    "text-xs sm:text-sm leading-relaxed",
+                    selectedCall.type === "best"
+                      ? "text-zinc-600"
+                      : "text-red-950"
+                  )}
+                >
+                  {selectedCall.type === "best"
+                    ? selectedCall.call.melhorias
+                    : selectedCall.call.falha_critica}
+                </p>
+              </div>
             </div>
-          </div>
-        </div>
-      )}
-    </div>
+
+            {selectedCall.call.frase_alternativa && (
+              <div className="grid grid-cols-1 md:grid-cols-2 overflow-hidden rounded-2xl bg-gradient-to-r from-[#F3F3F1] via-emerald-50/50 to-emerald-100/70 border border-emerald-100/50">
+                <div className="p-5 border-b md:border-b-0 md:border-r border-zinc-200/70">
+                  <span className="inline-block px-3 py-0.5 rounded-full text-[11px] font-semibold bg-white/80 text-zinc-600 mb-2 shadow-sm">
+                    Frase Original
+                  </span>
+                  <p className="text-sm font-medium text-zinc-800 italic">
+                    "
+                    {selectedCall.call.frase_original ||
+                      selectedCall.call.resultado_frase}
+                    "
+                  </p>
+                </div>
+                <div className="p-5">
+                  <span className="inline-block px-3 py-0.5 rounded-full text-[11px] font-semibold bg-white text-[#145F5E] mb-2 shadow-sm">
+                    Frase Alternativa Sugerida pela IA
+                  </span>
+                  <p className="text-sm font-medium text-zinc-900 italic">
+                    "{selectedCall.call.frase_alternativa}"
+                  </p>
+                </div>
+              </div>
+            )}
+
+            <div>
+              <h4 className="text-xs font-medium uppercase tracking-wider text-zinc-400 mb-3">
+                Notas por Critério & Justificativas ({selectedCall.call.nota}/100
+                pts)
+              </h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                {(
+                  Object.keys(CRITERIA_META) as Array<keyof typeof CRITERIA_META>
+                ).map((key) => {
+                  const meta = CRITERIA_META[key];
+                  const notaCrit =
+                    selectedCall.call.notas_criterios[
+                      key as keyof CallEvidence["notas_criterios"]
+                    ];
+                  const justCrit =
+                    selectedCall.call.justificativas_textuais[
+                      key as keyof CallEvidence["justificativas_textuais"]
+                    ];
+
+                  return (
+                    <div
+                      key={key}
+                      className="p-4 rounded-2xl bg-[#F6F6F4] space-y-1.5"
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="font-semibold text-xs text-zinc-900">
+                          {meta.label}
+                        </span>
+                        <span className="px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-white text-[#145F5E] shadow-sm border border-zinc-100">
+                          {notaCrit} / {meta.teto}
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-zinc-400 leading-snug">
+                        {meta.descricao}
+                      </p>
+                      <p className="text-xs text-zinc-600 leading-relaxed pt-1">
+                        {justCrit}
+                      </p>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div>
+              <h4 className="text-xs font-medium uppercase tracking-wider text-zinc-400 mb-2">
+                Transcrição Bruta da Ligação
+              </h4>
+              <div className="p-5 rounded-2xl bg-zinc-900 text-zinc-100 font-mono text-xs leading-relaxed whitespace-pre-line max-h-72 overflow-y-auto">
+                {selectedCall.call.transcricao}
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </motion.div>
   );
 };
 
@@ -1454,7 +1561,6 @@ export default function Dashboard() {
   const [isLoading, setIsLoading] = React.useState<boolean>(true);
   const [errorMsg, setErrorMsg] = React.useState<string | null>(null);
 
-  // Carrega filtros iniciais (Agentes, Departamentos, Semanas disponíveis)
   React.useEffect(() => {
     fetchConsolidacaoFiltros()
       .then((res) => {
@@ -1474,7 +1580,6 @@ export default function Dashboard() {
       });
   }, []);
 
-  // Carrega o Perfil Consolidado sempre que o Agente ou Semana mudarem (quando no escopo Pessoal + Semanal)
   const loadProfile = React.useCallback(async () => {
     if (escopo !== "pessoal" || granularidade !== "semanal") {
       return;
@@ -1554,106 +1659,136 @@ export default function Dashboard() {
             onSelectPeriodKey={setSelectedPeriodKey}
           />
 
-          {/* Estado Informativo quando Departamento, Equipe Geral ou Mensal forem clicados */}
-          {isUnsupportedScopeOrGranularity ? (
-            <div className="bg-white rounded-[28px] p-10 shadow-[0_2px_12px_rgba(0,0,0,0.03)] border border-zinc-100 text-center max-w-2xl mx-auto my-8 space-y-5">
-              <div className="w-12 h-12 rounded-2xl bg-emerald-300/50 text-[#145F5E] flex items-center justify-center mx-auto">
-                <Info className="h-6 w-6" />
-              </div>
-              <div className="space-y-2">
-                <span className="px-3 py-1 rounded-full text-xs font-semibold bg-[#F3F3F1] text-zinc-700">
-                  Escopo em Fase de Implementação
-                </span>
-                <h2 className="text-2xl font-medium text-zinc-900 pt-1">
-                  {escopo !== "pessoal"
-                    ? `Visão consolidada por ${escopo === "departamento" ? "Departamento" : "Equipe Geral"}`
-                    : "Consolidação na granularidade Mensal"}
-                </h2>
-                <p className="text-sm text-zinc-500 leading-relaxed">
-                  Neste primeiro momento do projeto SONAX, o motor de
-                  consolidação analítica e diagnóstico de IA opera
-                  exclusivamente para{" "}
-                  <strong className="text-zinc-800">
-                    SDRs individuais (Pessoal)
-                  </strong>{" "}
-                  e{" "}
-                  <strong className="text-zinc-800">
-                    perfis semanais (Semanal)
-                  </strong>
-                  .
-                </p>
-              </div>
-              <div className="pt-2">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setEscopo("pessoal");
-                    setGranularidade("semanal");
-                    setSelectedEntity(
-                      agentsList[0]?.agente_nome || "Lucas Silveira"
-                    );
-                  }}
-                  className="px-6 py-2.5 rounded-full text-xs font-medium bg-zinc-900 text-white hover:bg-zinc-800 transition-all shadow-sm"
-                >
-                  Voltar para Pessoal (SDR) • Semanal
-                </button>
-              </div>
-            </div>
-          ) : isLoading ? (
-            <div className="bg-white rounded-[28px] p-12 shadow-[0_2px_12px_rgba(0,0,0,0.03)] flex flex-col items-center justify-center gap-3 my-8">
-              <RefreshCw className="h-6 w-6 text-[#145F5E] animate-spin" />
-              <p className="text-sm text-zinc-500">
-                Carregando perfil consolidado de{" "}
-                <strong className="text-zinc-800">{selectedEntity}</strong>...
-              </p>
-            </div>
-          ) : errorMsg || !profileData ? (
-            <div className="bg-white rounded-[28px] p-10 shadow-[0_2px_12px_rgba(0,0,0,0.03)] text-center max-w-xl mx-auto my-8 space-y-4">
-              <div className="w-12 h-12 rounded-2xl bg-zinc-100 text-zinc-600 flex items-center justify-center mx-auto">
-                <AlertTriangle className="h-6 w-6" />
-              </div>
-              <h3 className="text-lg font-medium text-zinc-900">
-                {errorMsg || "Perfil não consolidado para este período."}
-              </h3>
-              <p className="text-xs text-zinc-500">
-                Selecione a Semana 1 de Novembro 2026 ou tente buscar novamente.
-              </p>
-              <button
-                type="button"
-                onClick={() => {
-                  setSelectedPeriodKey("sem1-11-2026");
-                  loadProfile();
-                }}
-                className="px-5 py-2 rounded-full text-xs font-medium bg-zinc-900 text-white hover:bg-zinc-800 transition-all"
+          <AnimatePresence mode="wait">
+            {isUnsupportedScopeOrGranularity ? (
+              <motion.div
+                key={`unsupported-${escopo}-${granularidade}`}
+                initial={{ opacity: 0, y: 12, scale: 0.99 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: -8, scale: 0.99 }}
+                transition={{ duration: 0.25, ease: "easeOut" }}
+                className="bg-white rounded-[28px] p-10 shadow-[0_2px_12px_rgba(0,0,0,0.03)] border border-zinc-100 text-center max-w-2xl mx-auto my-8 space-y-5"
               >
-                Carregar Semana 1 (Nov 2026)
-              </button>
-            </div>
-          ) : (
-            <>
-              <Layer1ExecutiveSection
-                notaGeral={profileData.metricas_camada_2.nota_media_geral}
-                delta={profileData.metricas_camada_2.delta_periodo_anterior}
-                parecerExecutivo={profileData.parecer_executivo}
-                sinteseExecutiva={
-                  profileData.diagnostico_camada_3.sintese_executiva
-                }
-                sinteseQualitativa={
-                  profileData.diagnostico_camada_3.sintese_qualitativa
-                }
-              />
-              <Layer2VolumeAndQuality
-                camada1={profileData.metricas_camada_1}
-                camada2={profileData.metricas_camada_2}
-              />
-              <Layer3OpportunitiesObjections
-                data={profileData.diagnostico_camada_3}
-              />
-              <Layer4PracticalEvidences
-                data={profileData.evidencias_camada_4}
-              />
-            </>
-          )}
+                <div className="w-12 h-12 rounded-2xl bg-emerald-300/50 text-[#145F5E] flex items-center justify-center mx-auto">
+                  <Info className="h-6 w-6" />
+                </div>
+                <div className="space-y-2">
+                  <span className="px-3 py-1 rounded-full text-xs font-semibold bg-[#F3F3F1] text-zinc-700">
+                    Escopo em Fase de Implementação
+                  </span>
+                  <h2 className="text-2xl font-medium text-zinc-900 pt-1">
+                    {escopo !== "pessoal"
+                      ? `Visão consolidada por ${escopo === "departamento" ? "Departamento" : "Equipe Geral"}`
+                      : "Consolidação na granularidade Mensal"}
+                  </h2>
+                  <p className="text-sm text-zinc-500 leading-relaxed">
+                    Neste primeiro momento do projeto SONAX, o motor de
+                    consolidação analítica e diagnóstico de IA opera
+                    exclusivamente para{" "}
+                    <strong className="text-zinc-800">
+                      SDRs individuais (Pessoal)
+                    </strong>{" "}
+                    e{" "}
+                    <strong className="text-zinc-800">
+                      perfis semanais (Semanal)
+                    </strong>
+                    .
+                  </p>
+                </div>
+                <div className="pt-2">
+                  <motion.button
+                    type="button"
+                    whileTap={{ scale: 0.97 }}
+                    onClick={() => {
+                      setEscopo("pessoal");
+                      setGranularidade("semanal");
+                      setSelectedEntity(
+                        agentsList[0]?.agente_nome || "Lucas Silveira"
+                      );
+                    }}
+                    className="px-6 py-2.5 rounded-full text-xs font-medium bg-zinc-900 text-white hover:bg-zinc-800 transition-all shadow-sm"
+                  >
+                    Voltar para Pessoal (SDR) • Semanal
+                  </motion.button>
+                </div>
+              </motion.div>
+            ) : isLoading ? (
+              <motion.div
+                key="loading"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.18 }}
+                className="bg-white rounded-[28px] p-12 shadow-[0_2px_12px_rgba(0,0,0,0.03)] flex flex-col items-center justify-center gap-3 my-8"
+              >
+                <RefreshCw className="h-6 w-6 text-[#145F5E] animate-spin" />
+                <p className="text-sm text-zinc-500">
+                  Carregando perfil consolidado de{" "}
+                  <strong className="text-zinc-800">{selectedEntity}</strong>...
+                </p>
+              </motion.div>
+            ) : errorMsg || !profileData ? (
+              <motion.div
+                key="error"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.22 }}
+                className="bg-white rounded-[28px] p-10 shadow-[0_2px_12px_rgba(0,0,0,0.03)] text-center max-w-xl mx-auto my-8 space-y-4"
+              >
+                <div className="w-12 h-12 rounded-2xl bg-zinc-100 text-zinc-600 flex items-center justify-center mx-auto">
+                  <AlertTriangle className="h-6 w-6" />
+                </div>
+                <h3 className="text-lg font-medium text-zinc-900">
+                  {errorMsg || "Perfil não consolidado para este período."}
+                </h3>
+                <p className="text-xs text-zinc-500">
+                  Selecione a Semana 1 de Novembro 2026 ou tente buscar novamente.
+                </p>
+                <motion.button
+                  type="button"
+                  whileTap={{ scale: 0.97 }}
+                  onClick={() => {
+                    setSelectedPeriodKey("sem1-11-2026");
+                    loadProfile();
+                  }}
+                  className="px-5 py-2 rounded-full text-xs font-medium bg-zinc-900 text-white hover:bg-zinc-800 transition-all"
+                >
+                  Carregar Semana 1 (Nov 2026)
+                </motion.button>
+              </motion.div>
+            ) : (
+              <motion.div
+                key={`${profileData.id_perfil}-${selectedEntity}-${selectedPeriodKey}`}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.2 }}
+              >
+                <Layer1ExecutiveSection
+                  notaGeral={profileData.metricas_camada_2.nota_media_geral}
+                  delta={profileData.metricas_camada_2.delta_periodo_anterior}
+                  parecerExecutivo={profileData.parecer_executivo}
+                  sinteseExecutiva={
+                    profileData.diagnostico_camada_3.sintese_executiva
+                  }
+                  sinteseQualitativa={
+                    profileData.diagnostico_camada_3.sintese_qualitativa
+                  }
+                />
+                <Layer2VolumeAndQuality
+                  camada1={profileData.metricas_camada_1}
+                  camada2={profileData.metricas_camada_2}
+                />
+                <Layer3OpportunitiesObjections
+                  data={profileData.diagnostico_camada_3}
+                />
+                <Layer4PracticalEvidences
+                  data={profileData.evidencias_camada_4}
+                />
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       </div>
     </TooltipProvider>
