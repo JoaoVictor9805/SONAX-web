@@ -2,6 +2,8 @@ import path from "path";
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 
+const apiProxyTarget = process.env.API_PROXY_TARGET || "http://localhost:3333";
+
 export default defineConfig({
   plugins: [react()],
   resolve: {
@@ -12,6 +14,19 @@ export default defineConfig({
   server: {
     host: "0.0.0.0",
     port: 5173,
+    allowedHosts: [
+      ".trycloudflare.com",
+      ".ngrok-free.app",
+      ".ngrok.io",
+      ".devtunnels.ms",
+      ".loca.lt",
+    ],
+    proxy: {
+      "/api": {
+        target: apiProxyTarget,
+        changeOrigin: true,
+      },
+    },
     watch: {
       usePolling: true,
     },

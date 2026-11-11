@@ -1,6 +1,6 @@
 import { ConsolidatedProfileData, FiltersResponse } from "@/types/dashboard";
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:3333";
+const API_BASE_URL = import.meta.env.VITE_API_URL || "";
 
 export async function fetchConsolidacaoFiltros(): Promise<FiltersResponse> {
   const response = await fetch(`${API_BASE_URL}/api/consolidacao/filtros`);
